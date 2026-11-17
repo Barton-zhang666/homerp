@@ -1,0 +1,44 @@
+[project]
+name = "homeerp-backend"
+version = "0.1.0"
+description = "homeerp FastAPI DDD backend"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "sqlalchemy[asyncio]>=2.0,<2.1",
+  "asyncmy>=0.2.10,<1",
+  "alembic>=1.14,<2",
+  "pydantic-settings>=2.7,<3",
+  "python-dotenv>=1.0,<2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8,<10",
+  "pytest-asyncio>=0.25,<2",
+  "httpx>=0.28,<1",
+  "ruff>=0.9,<1",
+  "mypy>=1.14,<2",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
