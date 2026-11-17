@@ -1,4 +1,4 @@
-# homeerp
+# homerp
 
 家庭 ERP monorepo，覆盖物资、日程、采购、财务与成员管理。
 
@@ -21,6 +21,7 @@
 docker compose up -d
 
 # apps/backend：后端
+uv run alembic upgrade head
 uv run uvicorn src.main:app --reload
 
 # apps/web：前端
@@ -31,8 +32,16 @@ pnpm dev
 - API 文档：http://localhost:8000/docs
 - 存活检查：http://localhost:8000/health
 
-本次初始化按用户要求暂缓 Docker 运行验收；后端存活检查可以独立于数据库运行。
-MySQL healthy、数据库连接、首次自动生成 revision、upgrade head 和 alembic check 待验收。
+2026-11-17 已通过本机 Docker Desktop 开发环境验收：MySQL healthy、数据库连接、
+初始基线迁移、回退重放和容器重启后的版本保留均正常。详情见 [数据库验收记录](docs/db-schema.md)。
+后端存活检查可以独立于数据库运行，不代表数据库就绪。
+
+若 Docker Desktop 已运行但旧终端找不到 `docker`，本机用户级安装可在该终端执行：
+
+```powershell
+$env:Path = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin;" + $env:Path
+docker version
+```
 
 若当前 Windows 终端的 `pnpm` 指向失效的 nvm 启动器，可在该终端执行：
 

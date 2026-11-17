@@ -1,4 +1,4 @@
-import type { components } from "@homeerp/api-types"
+import type { components } from "@homerp/api-types"
 
 export async function getHealth(): Promise<components["schemas"]["HealthResponse"]> {
   const response = await fetch("/api/health")

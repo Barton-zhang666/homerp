@@ -1,7 +1,7 @@
 [project]
-name = "homeerp-backend"
+name = "homerp-backend"
 version = "0.1.0"
-description = "homeerp FastAPI DDD backend"
+description = "homerp FastAPI DDD backend"
 requires-python = ">=3.12,<3.15"
 dependencies = [
   "fastapi>=0.115,<1",

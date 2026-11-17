@@ -13,7 +13,7 @@ pnpm generate
 生成 `src/schema.d.ts`，不需要启动 HTTP 服务或数据库。
 提交生成的 `openapi.json` 和类型文件，禁止手工修改生成内容。
 
-前端以 `import type { paths, components } from "@homeerp/api-types"` 消费契约。
+前端以 `import type { paths, components } from "@homerp/api-types"` 消费契约。
 API client 统一位于 `apps/web/src/lib/api/`，组件只调用其中的业务方法。
 开发时 `/api` 由 Vite 代理到 `http://127.0.0.1:8000`，移除 `/api` 前缀。
 生产部署需要同等反向代理配置。

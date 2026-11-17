@@ -32,7 +32,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@homeerp/api-types':
+      '@homerp/api-types':
         specifier: workspace:*
         version: link:../../packages/api-types
       '@workspace/ui':

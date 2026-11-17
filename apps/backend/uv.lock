@@ -189,7 +189,7 @@ wheels = [
 ]
 
 [[package]]
-name = "homeerp-backend"
+name = "homerp-backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

@@ -12,7 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@homeerp/api-types": "workspace:*",
+    "@homerp/api-types": "workspace:*",
     "@workspace/ui": "workspace:*",
     "cn": "^0.5.2",
     "lucide-react": "^1.73.0",
