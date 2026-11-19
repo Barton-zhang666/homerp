@@ -1,22 +1,66 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { Button } from "@workspace/ui/components/button"
+import { accounts, ApiError, type Self } from "@/lib/api/accounts"
+import { AuthForm } from "@/components/auth-form"
+import { MemberDirectory } from "@/components/member-directory"
+import { errorMessage } from "@/components/account-fields"
 
 export function App() {
-  const [ready, setReady] = useState(false)
+  const [user, setUser] = useState<Self | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [failure, setFailure] = useState("")
+  const [notice, setNotice] = useState("")
+  const [retry, setRetry] = useState(0)
+  useEffect(() => {
+    let active = true
+    const expired = () => {
+      setUser(null)
+      setNotice("请登录后继续。")
+    }
+    window.addEventListener("homerp:unauthenticated", expired)
+    accounts
+      .me()
+      .then((me) => {
+        if (active) setUser(me)
+      })
+      .catch((error) => {
+        if (active && !(error instanceof ApiError && error.status === 401))
+          setFailure(errorMessage(error))
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+      window.removeEventListener("homerp:unauthenticated", expired)
+    }
+  }, [retry])
+  if (loading || failure)
+    return (
+      <main className="grid min-h-svh place-content-center gap-4">
+        <p role="status">{failure || "正在读取账号…"}</p>
+        {failure && (
+          <Button
+            onClick={() => {
+              setLoading(true)
+              setFailure("")
+              setRetry((n) => n + 1)
+            }}
+          >
+            重试
+          </Button>
+        )}
+      </main>
+    )
+  if (!user) return <AuthForm onLogin={setUser} notice={notice} />
   return (
-    <main className="flex min-h-svh items-center justify-center p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">homerp</h1>
-          <p>家庭 ERP · 让日常井然有序</p>
-          <p className="text-muted-foreground">物资 · 日程 · 采购 · 财务 · 成员</p>
-          <Button className="mt-2" onClick={() => setReady(true)}>验证组件</Button>
-          <p role="status">{ready ? "shadcn Button 工作正常" : "项目基础环境已就绪"}</p>
-        </div>
-        <div className="text-muted-foreground font-mono text-xs">
-          按 <kbd>d</kbd> 切换深色模式
-        </div>
-      </div>
-    </main>
+    <MemberDirectory
+      key={user.member.id}
+      user={user}
+      signedOut={(message) => {
+        setNotice(message)
+        setUser(null)
+      }}
+    />
   )
 }
