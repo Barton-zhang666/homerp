@@ -71,6 +71,7 @@ export function WorkspaceNavigation({
               {navigation.map(({ page: target, icon: Icon }) => (
                 <SidebarMenuItem key={target}>
                   <SidebarMenuButton
+                    className="h-10"
                     asChild
                     isActive={page === target}
                     tooltip={pageTitles[target]}

@@ -78,9 +78,9 @@ export function Workspace({
         <SidebarInset className="min-w-0">
           <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 md:px-6">
             <SidebarTrigger aria-label="切换侧边栏" />
-            <h1 className="text-lg font-semibold">{pageTitles[page]}</h1>
+            <h1 className="text-xl font-semibold">{pageTitles[page]}</h1>
           </header>
-          <div className="w-full max-w-6xl p-4 md:p-8">
+          <div className="w-full max-w-screen-2xl p-4 md:p-6 xl:p-8">
             <Feedback message={logoutError} />
             {page === "profile" ? (
               <PersonalCenter

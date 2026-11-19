@@ -8,6 +8,11 @@
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
+@theme {
+    --text-sm: 0.9375rem;
+    --text-xs: 0.8125rem;
+}
+
 @theme inline {
     --font-heading: var(--font-sans);
     --color-sidebar-ring: var(--sidebar-ring);
@@ -48,7 +53,7 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Geist Variable', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 :root {
@@ -124,7 +129,37 @@
   * {
     @apply border-border outline-ring/50;
     }
+  html {
+    font-size: 100%;
+    @media (min-width: 48rem) {
+      font-size: 106.25%;
+    }
+  }
   body {
     @apply bg-background text-foreground;
     }
+}
+
+@layer components {
+  .member-directory {
+    --primary: light-dark(#205ab4, #91b8ff);
+    --accent: light-dark(#edf4ff, #20334e);
+    --accent-foreground: light-dark(#254f92, #bdd5ff);
+    --ring: var(--primary);
+  }
+  .dark .member-directory {
+    color-scheme: dark;
+  }
+  .member-directory [data-slot="tabs-trigger"][data-state="active"],
+  .member-directory h3 > svg {
+    color: var(--primary);
+  }
+  .member-directory [data-slot="tabs-trigger"][data-state="active"]::after {
+    background-color: var(--primary);
+  }
+  .member-directory h3 > svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+  }
 }

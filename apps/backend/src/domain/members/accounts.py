@@ -10,6 +10,8 @@ class Profile:
     birthday: date | None
     contact: str
     emergency_contact: str
+    backup_phone: str | None = None
+    contact_email: str | None = None
 
 
 @dataclass(frozen=True)

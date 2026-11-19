@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
 from uuid import uuid4
@@ -64,8 +65,18 @@ class AccountService:
         await self.current(token)
         return await self.repo.list_members()
 
-    async def edit(self, token: str | None, profile: Profile) -> Member:
+    async def edit(self, token: str | None, profile: Profile, supplied: set[str]) -> Member:
         account = await self.current(token)
+        previous = account.member.profile
+        profile = replace(
+            profile,
+            backup_phone=profile.backup_phone
+            if "backup_phone" in supplied
+            else previous.backup_phone,
+            contact_email=profile.contact_email
+            if "contact_email" in supplied
+            else previous.contact_email,
+        )
         await self.repo.update_profile(account.member.id, profile)
         return Member(account.member.id, profile)
 

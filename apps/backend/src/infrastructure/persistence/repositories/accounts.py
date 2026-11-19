@@ -11,7 +11,15 @@ from src.infrastructure.persistence.models.account import MemberRow, SessionRow
 def member(row: MemberRow) -> Member:
     return Member(
         row.id,
-        Profile(row.name, row.relationship, row.birthday, row.contact, row.emergency_contact),
+        Profile(
+            name=row.name,
+            relationship=row.relationship,
+            birthday=row.birthday,
+            contact=row.contact,
+            emergency_contact=row.emergency_contact,
+            backup_phone=row.backup_phone,
+            contact_email=row.contact_email,
+        ),
     )
 
 
@@ -69,6 +77,8 @@ class SqlAccounts:
                 birthday=profile.birthday,
                 contact=profile.contact,
                 emergency_contact=profile.emergency_contact,
+                backup_phone=profile.backup_phone,
+                contact_email=profile.contact_email,
             )
         )
 

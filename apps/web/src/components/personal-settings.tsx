@@ -28,6 +28,8 @@ export function ProfileEditor({
           birthday: value("birthday") || null,
           contact: value("contact"),
           emergency_contact: value("emergency_contact"),
+          backup_phone: value("backup_phone") || null,
+          contact_email: value("contact_email") || null,
         })
       )
     } catch (error) {
@@ -66,6 +68,20 @@ export function ProfileEditor({
           label="联系方式"
           defaultValue={member.contact}
           maxLength={160}
+        />
+        <AccountField
+          name="backup_phone"
+          label="备用电话"
+          type="tel"
+          maxLength={64}
+          defaultValue={member.backup_phone ?? ""}
+        />
+        <AccountField
+          name="contact_email"
+          label="联系邮箱（家人可见）"
+          type="email"
+          maxLength={254}
+          defaultValue={member.contact_email ?? ""}
         />
         <AccountField
           name="emergency_contact"

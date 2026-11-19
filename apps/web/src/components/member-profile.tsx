@@ -23,6 +23,8 @@ export function MemberDetails({
         ["家庭关系", member.relationship],
         ["生日", member.birthday],
         ["联系方式", member.contact],
+        ["备用电话", member.backup_phone],
+        ["联系邮箱", member.contact_email],
         ["紧急联系人", member.emergency_contact],
         ...(email ? [["登录邮箱（仅本人可见）", email]] : []),
       ].map(([label, value]) => (

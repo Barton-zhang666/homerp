@@ -14,6 +14,8 @@ class MemberRow(Base):
     birthday: Mapped[date | None]
     contact: Mapped[str] = mapped_column(String(160))
     emergency_contact: Mapped[str] = mapped_column(String(160))
+    backup_phone: Mapped[str | None] = mapped_column(String(64))
+    contact_email: Mapped[str | None] = mapped_column(String(254))
     email: Mapped[str] = mapped_column(String(254), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
 

@@ -72,10 +72,8 @@ async def members(svc: Service, token: Token = None) -> list[MemberView]:
 
 @router.put("/members/me")
 async def update_profile(body: ProfileInput, svc: Service, token: Token = None) -> MemberView:
-    profile = Profile(
-        body.name, body.relationship, body.birthday, body.contact, body.emergency_contact
-    )
-    return MemberView.of(await svc.edit(token, profile))
+    profile = Profile(**body.model_dump())
+    return MemberView.of(await svc.edit(token, profile, body.model_fields_set))
 
 
 @router.post("/auth/logout", status_code=204)

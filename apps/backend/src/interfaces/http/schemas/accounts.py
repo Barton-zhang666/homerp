@@ -30,6 +30,8 @@ class ProfileInput(Input):
     birthday: date | None = None
     contact: str = Field(default="", max_length=160)
     emergency_contact: str = Field(default="", max_length=160)
+    backup_phone: str | None = Field(default=None, max_length=64)
+    contact_email: EmailStr | None = Field(default=None, max_length=254)
 
 
 class PasswordChange(Input):
@@ -50,6 +52,8 @@ class MemberView(ProfileInput):
             birthday=p.birthday,
             contact=p.contact,
             emergency_contact=p.emergency_contact,
+            backup_phone=p.backup_phone,
+            contact_email=p.contact_email,
         )
 
 

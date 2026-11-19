@@ -191,6 +191,10 @@ export interface components {
              * @default
              */
             emergency_contact: string;
+            /** Backup Phone */
+            backup_phone?: string | null;
+            /** Contact Email */
+            contact_email?: string | null;
             /** Id */
             id: string;
         };
@@ -228,6 +232,10 @@ export interface components {
              * @default
              */
             emergency_contact: string;
+            /** Backup Phone */
+            backup_phone?: string | null;
+            /** Contact Email */
+            contact_email?: string | null;
         };
         /** Registration */
         Registration: {

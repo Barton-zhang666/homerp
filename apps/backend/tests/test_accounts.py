@@ -66,10 +66,19 @@ async def test_self_registration_and_shared_directory(
             await second.put("/members/me", json={**profile, "id": first_id})
         ).status_code == 422
         assert (await second.put("/members/me", json=profile)).status_code == 200
+        contacts = {"backup_phone": "010-12345678", "contact_email": "family@example.com"}
+        assert (await second.put("/members/me", json={**profile, **contacts})).status_code == 200
+        # A legacy client can still save the original fields.
+        assert (await second.put("/members/me", json=profile)).status_code == 200
         rows = (await first.get("/members")).json()
         assert len(rows) == 2
         assert all("email" not in row and "password_hash" not in row for row in rows)
         assert next(row for row in rows if row["id"] == second_id)["contact"] == profile["contact"]
+        relative = next(row for row in rows if row["id"] == second_id)
+        assert all(relative[key] == value for key, value in contacts.items())
+        cleared = await second.put("/members/me", json={**profile, "contact_email": None})
+        assert cleared.json()["contact_email"] is None
+        assert cleared.json()["backup_phone"] == contacts["backup_phone"]
         assert (await first.get("/auth/me")).json()["member"]["name"] == "first"
         async with database() as db:
             row = await db.get(MemberRow, first_id)
