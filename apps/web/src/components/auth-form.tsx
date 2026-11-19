@@ -1,12 +1,6 @@
 import { useState, type FormEvent } from "react"
+import { House } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from "@workspace/ui/components/card"
 import { FieldGroup } from "@workspace/ui/components/field"
 import { accounts, type Self } from "@/lib/api/accounts"
 import { AccountField, Feedback, errorMessage } from "./account-fields"
@@ -55,80 +49,106 @@ export function AuthForm({
     }
   }
   return (
-    <main className="grid min-h-svh place-items-center bg-muted/40 p-6">
-      <section className="w-full max-w-sm space-y-5">
-        <p className="text-center text-xl font-semibold tracking-tight">
-          homerp
-        </p>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">{titles[mode]}</CardTitle>
-            <CardDescription>
+    <main className="grid min-h-svh grid-rows-[auto_1fr] bg-background md:grid-cols-[1fr_2fr] md:grid-rows-1">
+      <aside
+        aria-label="homerp 家庭管理"
+        className="flex items-center justify-center gap-3 bg-primary px-6 py-5 text-primary-foreground md:flex-col md:gap-4 md:text-center"
+      >
+        <House
+          aria-hidden="true"
+          strokeWidth={1.5}
+          className="size-7 md:size-11"
+        />
+        <div>
+          <p className="text-2xl leading-none font-medium tracking-tight md:text-5xl md:font-normal">
+            homerp
+          </p>
+          <p className="mt-2 text-sm text-primary-foreground/75 md:mt-3 md:text-base">
+            家庭管理空间
+          </p>
+        </div>
+      </aside>
+      <section
+        aria-labelledby="auth-title"
+        className="grid min-w-0 place-items-center px-6 py-10 sm:px-10"
+      >
+        <div className="w-full max-w-[25rem]">
+          <header className="mb-8 text-center">
+            <h1
+              id="auth-title"
+              className="text-2xl font-semibold tracking-tight"
+            >
+              {titles[mode]}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
               {mode === "register"
                 ? "注册后，你的称呼将出现在家庭名册中。"
                 : "登录后查看家庭成员和个人资料。"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form key={mode} onSubmit={submit}>
-              <FieldGroup>
-                {mode === "register" && (
-                  <AccountField
-                    label="家庭称呼"
-                    name="name"
-                    required
-                    maxLength={64}
-                  />
-                )}
+            </p>
+          </header>
+          <form key={mode} onSubmit={submit}>
+            <FieldGroup>
+              {mode === "register" && (
                 <AccountField
-                  label="登录邮箱"
-                  name="email"
-                  type="email"
-                  autoComplete="username"
+                  label="家庭称呼"
+                  name="name"
                   required
-                  maxLength={254}
+                  maxLength={64}
                 />
+              )}
+              <AccountField
+                label="登录邮箱"
+                name="email"
+                placeholder="you@example.com"
+                type="email"
+                autoComplete="username"
+                required
+                maxLength={254}
+              />
+              <AccountField
+                label={mode === "register" ? "密码（至少 10 个字符）" : "密码"}
+                name="password"
+                type="password"
+                required
+                minLength={mode === "register" ? 10 : 1}
+                maxLength={128}
+                autoComplete={
+                  mode === "register" ? "new-password" : "current-password"
+                }
+              />
+              {mode === "register" && (
                 <AccountField
-                  label={
-                    mode === "register" ? "密码（至少 10 个字符）" : "密码"
-                  }
-                  name="password"
+                  label="确认密码"
+                  name="password_confirmation"
                   type="password"
                   required
-                  minLength={mode === "register" ? 10 : 1}
                   maxLength={128}
-                  autoComplete={
-                    mode === "register" ? "new-password" : "current-password"
-                  }
+                  autoComplete="new-password"
                 />
-                {mode === "register" && (
-                  <AccountField
-                    label="确认密码"
-                    name="password_confirmation"
-                    type="password"
-                    required
-                    maxLength={128}
-                    autoComplete="new-password"
-                  />
-                )}
-                <Feedback message={message} />
-                <Button disabled={busy}>{titles[mode]}</Button>
-              </FieldGroup>
-            </form>
-            <div className="mt-4 flex justify-between">
-              <Button
-                disabled={busy}
-                variant="link"
-                onClick={() => {
-                  setMode(mode === "login" ? "register" : "login")
-                  setMessage("")
-                }}
-              >
-                {mode === "login" ? titles.register : titles.login}
+              )}
+              <Feedback message={message} />
+              <Button className="w-full" size="lg" disabled={busy}>
+                {titles[mode]}
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </FieldGroup>
+          </form>
+          <div className="mt-5 flex items-center justify-center gap-1 text-sm">
+            <span className="text-muted-foreground">
+              {mode === "login" ? "还没有账号？" : "已有账号？"}
+            </span>
+            <Button
+              className="px-1"
+              disabled={busy}
+              variant="link"
+              onClick={() => {
+                setMode(mode === "login" ? "register" : "login")
+                setMessage("")
+              }}
+            >
+              {mode === "login" ? titles.register : titles.login}
+            </Button>
+          </div>
+        </div>
       </section>
     </main>
   )

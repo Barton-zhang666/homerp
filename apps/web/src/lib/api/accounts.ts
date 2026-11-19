@@ -27,7 +27,7 @@ async function send(
   })
   if (!response.ok) {
     const data = await response.json().catch(() => ({}))
-    if (response.status === 401)
+    if (response.status === 401 && path !== "/auth/me")
       window.dispatchEvent(new Event("homerp:unauthenticated"))
     throw new ApiError(
       response.status,
