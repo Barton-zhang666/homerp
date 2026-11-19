@@ -16,7 +16,6 @@ class MemberRow(Base):
     emergency_contact: Mapped[str] = mapped_column(String(160))
     email: Mapped[str] = mapped_column(String(254), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    active: Mapped[bool]
 
 
 class SessionRow(Base):

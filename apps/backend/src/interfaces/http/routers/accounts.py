@@ -6,7 +6,6 @@ from src.application.use_cases.accounts import SESSION_DAYS, AccountService
 from src.domain.members.accounts import Account, Profile
 from src.interfaces.dependencies import account_service
 from src.interfaces.http.schemas.accounts import (
-    Confirmation,
     Credentials,
     MemberView,
     PasswordChange,
@@ -45,6 +44,8 @@ def signed_in(request: Request, response: Response, result: tuple[Account, str])
 async def register(
     body: Registration, svc: Service, request: Request, response: Response
 ) -> SelfView:
+    if body.password != body.password_confirmation:
+        raise HTTPException(422, "两次输入的密码不一致")
     return signed_in(
         request,
         response,
@@ -56,17 +57,6 @@ async def register(
 async def login(body: Credentials, svc: Service, request: Request, response: Response) -> SelfView:
     return signed_in(
         request, response, await svc.login(str(body.email), body.password.get_secret_value())
-    )
-
-
-@router.post("/auth/reactivate")
-async def reactivate(
-    body: Credentials, svc: Service, request: Request, response: Response
-) -> SelfView:
-    return signed_in(
-        request,
-        response,
-        await svc.login(str(body.email), body.password.get_secret_value(), restore=True),
     )
 
 
@@ -91,14 +81,6 @@ async def update_profile(body: ProfileInput, svc: Service, token: Token = None) 
 @router.post("/auth/logout", status_code=204)
 async def logout(svc: Service, response: Response, token: Token = None) -> None:
     await svc.logout(token)
-    response.delete_cookie("homerp_session")
-
-
-@router.post("/auth/deactivate", status_code=204)
-async def deactivate(
-    body: Confirmation, svc: Service, response: Response, token: Token = None
-) -> None:
-    await svc.deactivate(token, body.password.get_secret_value())
     response.delete_cookie("homerp_session")
 
 

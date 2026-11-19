@@ -144,65 +144,6 @@
         }
       }
     },
-    "/auth/reactivate": {
-      "post": {
-        "tags": [
-          "用户与成员"
-        ],
-        "summary": "Reactivate",
-        "operationId": "reactivate_auth_reactivate_post",
-        "parameters": [
-          {
-            "name": "x-homerp-request",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Homerp-Request"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Credentials"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SelfView"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/auth/me": {
       "get": {
         "tags": [
@@ -470,74 +411,6 @@
         }
       }
     },
-    "/auth/deactivate": {
-      "post": {
-        "tags": [
-          "用户与成员"
-        ],
-        "summary": "Deactivate",
-        "operationId": "deactivate_auth_deactivate_post",
-        "parameters": [
-          {
-            "name": "x-homerp-request",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Homerp-Request"
-            }
-          },
-          {
-            "name": "homerp_session",
-            "in": "cookie",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Homerp Session"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Confirmation"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/auth/password": {
       "post": {
         "tags": [
@@ -609,24 +482,6 @@
   },
   "components": {
     "schemas": {
-      "Confirmation": {
-        "properties": {
-          "password": {
-            "type": "string",
-            "maxLength": 128,
-            "minLength": 1,
-            "format": "password",
-            "title": "Password",
-            "writeOnly": true
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "password"
-        ],
-        "title": "Confirmation"
-      },
       "Credentials": {
         "properties": {
           "email": {
@@ -720,18 +575,13 @@
           "id": {
             "type": "string",
             "title": "Id"
-          },
-          "active": {
-            "type": "boolean",
-            "title": "Active"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
           "name",
-          "id",
-          "active"
+          "id"
         ],
         "title": "MemberView"
       },
@@ -829,6 +679,12 @@
             "maxLength": 64,
             "minLength": 1,
             "title": "Name"
+          },
+          "password_confirmation": {
+            "type": "string",
+            "format": "password",
+            "title": "Password Confirmation",
+            "writeOnly": true
           }
         },
         "additionalProperties": false,
@@ -836,7 +692,8 @@
         "required": [
           "email",
           "password",
-          "name"
+          "name",
+          "password_confirmation"
         ],
         "title": "Registration"
       },

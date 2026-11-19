@@ -16,14 +16,6 @@ class InvalidCredentials(Exception):
     pass
 
 
-class AccountInactive(Exception):
-    pass
-
-
-class AlreadyActive(Exception):
-    pass
-
-
 class NoSession(Exception):
     pass
 
@@ -45,7 +37,7 @@ class AccountService:
         self.passwords = passwords
 
     async def register(self, name: str, email: str, password: str) -> tuple[Account, str]:
-        member = Member(str(uuid4()), Profile(name, "", None, "", ""), True)
+        member = Member(str(uuid4()), Profile(name, "", None, "", ""))
         account = Account(member, email.casefold(), await self.passwords.hash(password))
         await self.repo.create(account)
         return account, await self.issue_session(member.id)
@@ -55,29 +47,16 @@ class AccountService:
         await self.repo.add_session(member_id, digest(token), now() + timedelta(days=SESSION_DAYS))
         return token
 
-    async def login(
-        self, email: str, password: str, *, restore: bool = False
-    ) -> tuple[Account, str]:
+    async def login(self, email: str, password: str) -> tuple[Account, str]:
         account = await self.repo.by_email(email.casefold())
         valid = await self.passwords.verify(password, account.password_hash if account else None)
         if not valid or account is None:
             raise InvalidCredentials
-        if restore:
-            if account.member.active:
-                raise AlreadyActive
-            await self.repo.set_active(account.member.id, True)
-            account = Account(
-                Member(account.member.id, account.member.profile, True),
-                account.email,
-                account.password_hash,
-            )
-        elif not account.member.active:
-            raise AccountInactive
         return account, await self.issue_session(account.member.id)
 
     async def current(self, token: str | None) -> Account:
         account = await self.repo.by_session(digest(token), now()) if token else None
-        if not account or not account.member.active:
+        if not account:
             raise NoSession
         return account
 
@@ -88,7 +67,7 @@ class AccountService:
     async def edit(self, token: str | None, profile: Profile) -> Member:
         account = await self.current(token)
         await self.repo.update_profile(account.member.id, profile)
-        return Member(account.member.id, profile, True)
+        return Member(account.member.id, profile)
 
     async def logout(self, token: str | None) -> None:
         if token:
@@ -99,11 +78,6 @@ class AccountService:
         if not await self.passwords.verify(password, account.password_hash):
             raise InvalidCredentials
         return account.member.id
-
-    async def deactivate(self, token: str | None, password: str) -> None:
-        member_id = await self.confirm(token, password)
-        await self.repo.set_active(member_id, False)
-        await self.repo.revoke_all(member_id)
 
     async def change_password(self, token: str | None, password: str, replacement: str) -> None:
         member_id = await self.confirm(token, password)

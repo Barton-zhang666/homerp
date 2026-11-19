@@ -21,6 +21,7 @@ class Credentials(Input):
 class Registration(Credentials):
     name: Name
     password: Password
+    password_confirmation: SecretStr
 
 
 class ProfileInput(Input):
@@ -31,24 +32,19 @@ class ProfileInput(Input):
     emergency_contact: str = Field(default="", max_length=160)
 
 
-class Confirmation(Input):
+class PasswordChange(Input):
     password: SecretStr = Field(min_length=1, max_length=128)
-
-
-class PasswordChange(Confirmation):
     new_password: Password
 
 
 class MemberView(ProfileInput):
     id: str
-    active: bool
 
     @classmethod
     def of(cls, member: Member) -> Self:
         p = member.profile
         return cls(
             id=member.id,
-            active=member.active,
             name=p.name,
             relationship=p.relationship,
             birthday=p.birthday,

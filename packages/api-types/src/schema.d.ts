@@ -55,23 +55,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/reactivate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reactivate */
-        post: operations["reactivate_auth_reactivate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/me": {
         parameters: {
             query?: never;
@@ -140,23 +123,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/deactivate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Deactivate */
-        post: operations["deactivate_auth_deactivate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/password": {
         parameters: {
             query?: never;
@@ -178,14 +144,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Confirmation */
-        Confirmation: {
-            /**
-             * Password
-             * Format: password
-             */
-            password: string;
-        };
         /** Credentials */
         Credentials: {
             /**
@@ -235,8 +193,6 @@ export interface components {
             emergency_contact: string;
             /** Id */
             id: string;
-            /** Active */
-            active: boolean;
         };
         /** PasswordChange */
         PasswordChange: {
@@ -287,6 +243,11 @@ export interface components {
             password: string;
             /** Name */
             name: string;
+            /**
+             * Password Confirmation
+             * Format: password
+             */
+            password_confirmation: string;
         };
         /** SelfView */
         SelfView: {
@@ -372,41 +333,6 @@ export interface operations {
         };
     };
     login_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "x-homerp-request"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Credentials"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SelfView"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reactivate_auth_reactivate_post: {
         parameters: {
             query?: never;
             header?: {
@@ -556,41 +482,6 @@ export interface operations {
             };
         };
         requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    deactivate_auth_deactivate_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "x-homerp-request"?: string | null;
-            };
-            path?: never;
-            cookie?: {
-                homerp_session?: string | null;
-            };
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Confirmation"];
-            };
-        };
         responses: {
             /** @description Successful Response */
             204: {

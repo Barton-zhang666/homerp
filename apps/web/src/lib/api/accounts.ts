@@ -54,13 +54,9 @@ export const accounts = {
     request<Self>("/auth/register", "POST", body),
   login: (body: Schema["Credentials"]) =>
     request<Self>("/auth/login", "POST", body),
-  restore: (body: Schema["Credentials"]) =>
-    request<Self>("/auth/reactivate", "POST", body),
   logout: () => send("/auth/logout", "POST"),
   members: () => request<Member[]>("/members"),
   edit: (body: Profile) => request<Member>("/members/me", "PUT", body),
-  deactivate: (body: Schema["Confirmation"]) =>
-    send("/auth/deactivate", "POST", body),
   password: (body: Schema["PasswordChange"]) =>
     send("/auth/password", "POST", body),
 }

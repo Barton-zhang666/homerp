@@ -11,8 +11,8 @@ import { FieldGroup } from "@workspace/ui/components/field"
 import { accounts, type Self } from "@/lib/api/accounts"
 import { AccountField, Feedback, errorMessage } from "./account-fields"
 
-type Mode = "login" | "register" | "restore"
-const titles = { login: "登录", register: "注册账号", restore: "恢复账号" }
+type Mode = "login" | "register"
+const titles = { login: "登录", register: "注册账号" }
 
 export function AuthForm({
   onLogin,
@@ -31,6 +31,11 @@ export function AuthForm({
       email: String(form.get("email")),
       password: String(form.get("password")),
     }
+    const confirmation = String(form.get("password_confirmation") ?? "")
+    if (mode === "register" && confirmation !== credentials.password) {
+      setMessage("两次输入的密码不一致")
+      return
+    }
     setBusy(true)
     setMessage("")
     try {
@@ -38,9 +43,10 @@ export function AuthForm({
         mode === "register"
           ? await accounts.register({
               ...credentials,
+              password_confirmation: confirmation,
               name: String(form.get("name")),
             })
-          : await accounts[mode](credentials)
+          : await accounts.login(credentials)
       )
     } catch (error) {
       setMessage(errorMessage(error))
@@ -60,9 +66,7 @@ export function AuthForm({
             <CardDescription>
               {mode === "register"
                 ? "注册后，你的称呼将出现在家庭名册中。"
-                : mode === "restore"
-                  ? "使用原登录邮箱和密码重新启用本人账号。"
-                  : "登录后查看家庭成员和个人资料。"}
+                : "登录后查看家庭成员和个人资料。"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -97,26 +101,31 @@ export function AuthForm({
                     mode === "register" ? "new-password" : "current-password"
                   }
                 />
+                {mode === "register" && (
+                  <AccountField
+                    label="确认密码"
+                    name="password_confirmation"
+                    type="password"
+                    required
+                    maxLength={128}
+                    autoComplete="new-password"
+                  />
+                )}
                 <Feedback message={message} />
                 <Button disabled={busy}>{titles[mode]}</Button>
               </FieldGroup>
             </form>
             <div className="mt-4 flex justify-between">
-              {(["login", "register", "restore"] as const)
-                .filter((m) => m !== mode)
-                .map((m) => (
-                  <Button
-                    disabled={busy}
-                    key={m}
-                    variant="link"
-                    onClick={() => {
-                      setMode(m)
-                      setMessage("")
-                    }}
-                  >
-                    {titles[m]}
-                  </Button>
-                ))}
+              <Button
+                disabled={busy}
+                variant="link"
+                onClick={() => {
+                  setMode(mode === "login" ? "register" : "login")
+                  setMessage("")
+                }}
+              >
+                {mode === "login" ? titles.register : titles.login}
+              </Button>
             </div>
           </CardContent>
         </Card>

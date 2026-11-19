@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   Card,
   CardContent,
@@ -9,9 +8,9 @@ import {
 } from "@workspace/ui/components/card"
 import { accounts, type Member, type Self } from "@/lib/api/accounts"
 import { AccountField, Feedback, errorMessage } from "./account-fields"
-import { ProfileEditor, SecurityForm } from "./personal-settings"
+import { ProfileEditor, PasswordForm } from "./personal-settings"
 
-type Panel = "view" | "edit" | "password" | "deactivate"
+type Panel = "view" | "edit" | "password"
 
 export function MemberDirectory({
   user,
@@ -123,9 +122,6 @@ export function MemberDirectory({
             <CardHeader>
               <CardTitle className="flex flex-wrap items-center gap-3 text-2xl">
                 {current.name}
-                <Badge variant="secondary">
-                  {current.active ? "已启用" : "已停用"}
-                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6">
@@ -158,12 +154,6 @@ export function MemberDirectory({
                       >
                         修改密码
                       </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => setPanel("deactivate")}
-                      >
-                        停用我的账号
-                      </Button>
                     </div>
                   )}
                 </>
@@ -181,10 +171,8 @@ export function MemberDirectory({
                   }}
                 />
               )}
-              {own && (panel === "password" || panel === "deactivate") && (
-                <SecurityForm
-                  key={panel}
-                  action={panel}
+              {own && panel === "password" && (
+                <PasswordForm
                   done={signedOut}
                   cancel={() => setPanel("view")}
                 />

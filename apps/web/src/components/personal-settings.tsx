@@ -85,12 +85,10 @@ export function ProfileEditor({
   )
 }
 
-export function SecurityForm({
-  action,
+export function PasswordForm({
   done,
   cancel,
 }: {
-  action: "password" | "deactivate"
   done: (notice: string) => void
   cancel: () => void
 }) {
@@ -102,16 +100,11 @@ export function SecurityForm({
     const password = String(data.get("password"))
     setBusy(true)
     try {
-      if (action === "password") {
-        await accounts.password({
-          password,
-          new_password: String(data.get("new_password")),
-        })
-        done("密码已更新，请重新登录。")
-      } else {
-        await accounts.deactivate({ password })
-        done("账号已停用，可凭原密码恢复。")
-      }
+      await accounts.password({
+        password,
+        new_password: String(data.get("new_password")),
+      })
+      done("密码已更新，请重新登录。")
     } catch (error) {
       setMessage(errorMessage(error))
     } finally {
@@ -121,11 +114,7 @@ export function SecurityForm({
   return (
     <form onSubmit={submit}>
       <FieldGroup>
-        <p>
-          {action === "password"
-            ? "修改密码后，所有设备都需要重新登录。"
-            : "停用后将退出所有设备。家庭名册保留你的资料。"}
-        </p>
+        <p>修改密码后，所有设备都需要重新登录。</p>
         <AccountField
           name="password"
           label="当前密码"
@@ -134,25 +123,18 @@ export function SecurityForm({
           required
           maxLength={128}
         />
-        {action === "password" && (
-          <AccountField
-            name="new_password"
-            label="新密码（至少 10 个字符）"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={10}
-            maxLength={128}
-          />
-        )}
+        <AccountField
+          name="new_password"
+          label="新密码（至少 10 个字符）"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={10}
+          maxLength={128}
+        />
         <Feedback message={message} />
         <div className="flex gap-2">
-          <Button
-            disabled={busy}
-            variant={action === "password" ? "default" : "destructive"}
-          >
-            {action === "password" ? "确认修改密码" : "确认停用本人账号"}
-          </Button>
+          <Button disabled={busy}>确认修改密码</Button>
           <Button type="button" variant="outline" onClick={cancel}>
             取消
           </Button>

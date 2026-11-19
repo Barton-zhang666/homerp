@@ -39,8 +39,13 @@ def credentials(name: str) -> dict[str, str]:
     return {"email": f"{name}@example.com", "password": "test-password-123"}
 
 
+def registration(name: str) -> dict[str, str]:
+    auth = credentials(name)
+    return {"name": name, **auth, "password_confirmation": auth["password"]}
+
+
 async def register(c: httpx.AsyncClient, name: str) -> str:
-    response = await c.post("/auth/register", json={"name": name, **credentials(name)})
+    response = await c.post("/auth/register", json=registration(name))
     assert response.status_code == 201, response.text
     assert "HttpOnly" in response.headers["set-cookie"]
     return str(response.json()["member"]["id"])
@@ -53,9 +58,7 @@ async def test_self_registration_and_shared_directory(
         assert (await first.get("/members")).status_code == 401
         first_id = await register(first, "first")
         second_id = await register(second, "second")
-        duplicate = await second.post(
-            "/auth/register", json={"name": "另一个称呼", **credentials("FIRST")}
-        )
+        duplicate = await second.post("/auth/register", json=registration("FIRST"))
         assert duplicate.status_code == 409
         assert (await second.get("/auth/me")).json()["member"]["id"] == second_id
         profile = {"name": "小林", "contact": "家庭分机 102", "relationship": "姐姐"}
@@ -74,26 +77,28 @@ async def test_self_registration_and_shared_directory(
             assert await db.get(SessionRow, digest(first.cookies["homerp_session"]))
 
 
-async def test_deactivation_and_password_change_revoke_every_session(
+@pytest.mark.parametrize("confirmation", [None, "different-password"])
+async def test_registration_requires_matching_passwords(
+    database: async_sessionmaker[AsyncSession], confirmation: str | None
+) -> None:
+    async with client() as c:
+        body = registration("confirm")
+        body.pop("password_confirmation")
+        if confirmation is not None:
+            body["password_confirmation"] = confirmation
+        response = await c.post("/auth/register", json=body)
+        assert response.status_code == 422
+        assert (await c.get("/auth/me")).status_code == 401
+        await register(c, "confirm")
+
+
+async def test_password_change_revokes_every_session(
     database: async_sessionmaker[AsyncSession],
 ) -> None:
-    async with client() as first, client() as other_device, client() as family:
-        user_id = await register(first, "member")
-        await register(family, "relative")
+    async with client() as first, client() as other_device:
+        await register(first, "member")
         auth = credentials("member")
         assert (await other_device.post("/auth/login", json=auth)).status_code == 200
-        assert (await first.post("/auth/deactivate", json={"password": "wrong"})).status_code == 403
-        assert (
-            await first.post("/auth/deactivate", json={"password": auth["password"]})
-        ).status_code == 204
-        assert (await other_device.get("/auth/me")).status_code == 401
-        roster = (await family.get("/members")).json()
-        assert not next(m for m in roster if m["id"] == user_id)["active"]
-        assert (await first.post("/auth/login", json=auth)).status_code == 403
-        restored = await first.post("/auth/reactivate", json=auth)
-        assert restored.json()["member"]["id"] == user_id
-        assert (await other_device.get("/members")).status_code == 401
-        await other_device.post("/auth/login", json=auth)
         new = "replacement-123"
         assert (
             await first.post(

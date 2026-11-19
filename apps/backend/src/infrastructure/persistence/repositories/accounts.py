@@ -12,7 +12,6 @@ def member(row: MemberRow) -> Member:
     return Member(
         row.id,
         Profile(row.name, row.relationship, row.birthday, row.contact, row.emergency_contact),
-        row.active,
     )
 
 
@@ -30,7 +29,6 @@ class SqlAccounts:
                 id=account.member.id,
                 email=account.email,
                 password_hash=account.password_hash,
-                active=True,
                 name=account.member.profile.name,
                 relationship="",
                 contact="",
@@ -72,11 +70,6 @@ class SqlAccounts:
                 contact=profile.contact,
                 emergency_contact=profile.emergency_contact,
             )
-        )
-
-    async def set_active(self, member_id: str, active: bool) -> None:
-        await self.db.execute(
-            update(MemberRow).where(MemberRow.id == member_id).values(active=active)
         )
 
     async def set_password(self, member_id: str, password_hash: str) -> None:
