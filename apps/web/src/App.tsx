@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { accounts, ApiError, type Self } from "@/lib/api/accounts"
 import { AuthForm } from "@/components/auth-form"
-import { MemberDirectory } from "@/components/member-directory"
+import { Workspace } from "@/components/workspace"
 import { errorMessage } from "@/components/account-fields"
 
 export function App() {
@@ -52,11 +52,25 @@ export function App() {
         )}
       </main>
     )
-  if (!user) return <AuthForm onLogin={setUser} notice={notice} />
+  if (!user)
+    return (
+      <AuthForm
+        onLogin={(me) => {
+          window.history.replaceState(null, "", "#dashboard")
+          setUser(me)
+        }}
+        notice={notice}
+      />
+    )
   return (
-    <MemberDirectory
+    <Workspace
       key={user.member.id}
       user={user}
+      saved={(member) =>
+        setUser((current) =>
+          current?.member.id === member.id ? { ...current, member } : current
+        )
+      }
       signedOut={(message) => {
         setNotice(message)
         setUser(null)
