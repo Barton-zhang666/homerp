@@ -2,7 +2,7 @@
 
 家庭 ERP monorepo，覆盖物资、日程、采购、财务与成员管理。
 
-五个模块的功能边界、家庭操作流程和验收场景见[家庭 ERP 系统设计](docs/system-design.md)。
+桌面 Web 的页面布局、五份模块详细设计和跨模块操作流程见[家庭 ERP 系统设计](docs/system-design.md)。
 
 - `apps/web/`：React + Vite + TypeScript + shadcn/ui。
 - `apps/backend/`：FastAPI + DDD + SQLAlchemy async。
