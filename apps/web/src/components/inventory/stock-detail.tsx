@@ -1,32 +1,21 @@
 import { useState } from "react"
-import { ChevronDown, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@workspace/ui/components/dialog"
+import { StockActions } from "./stock-actions"
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@workspace/ui/components/tabs"
-import type {
-  Category,
-  Product,
-  Holding,
-  StockAction,
-} from "@/lib/api/inventory"
+import type { Product } from "@/lib/api/inventory"
 import type { Editor } from "./stock-form"
 import {
   actions,
@@ -42,30 +31,6 @@ const custody: Record<string, string> = {
   home: "在家",
   lent: "借出中",
   repair: "送修中",
-}
-function operations(
-  category: Category,
-  h: Holding,
-  actorId: string
-): StockAction[] {
-  if (Number(h.remaining) === 0) return ["count"]
-  if (h.custody === "lent") return ["return"]
-  if (h.custody === "repair") return ["retrieve"]
-  const ops: StockAction[] = ["move", "count", "discard"]
-  if (category === "item") return [...ops, "lend", "repair", "use"]
-  if (
-    category === "food" ||
-    !["expired", "unknown", "verify"].includes(h.status)
-  )
-    ops.push("use")
-  if (!h.opened && h.received_by === actorId) ops.push("verify_date")
-  if (
-    !h.opened &&
-    !["expired", "unknown", "verify"].includes(h.status) &&
-    h.expiry.length !== 7
-  )
-    ops.push("open")
-  return ops
 }
 export function StockDetail({
   p,
@@ -94,17 +59,17 @@ export function StockDetail({
       (a.expiry || "9999").localeCompare(b.expiry || "9999")
   )
   return (
-    <Card className="min-w-0">
-      <CardHeader>
-        <CardTitle className="text-xl wrap-anywhere">
+    <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 sm:max-w-2xl">
+      <DialogHeader className="shrink-0 border-b px-5 py-4 pr-12">
+        <DialogTitle className="text-xl wrap-anywhere">
           {[p.name, p.details.form, p.details.specification]
             .filter(Boolean)
             .join(" · ")}
-        </CardTitle>
-        <p className="text-muted-foreground">
+        </DialogTitle>
+        <DialogDescription>
           建档人 {name(p.owner_id)} · 拥有 {Number(p.owned)} {p.unit} · 可用{" "}
           {Number(p.available)} {p.unit}
-        </p>
+        </DialogDescription>
         <div className="mt-2 flex flex-wrap gap-2">
           <Button onClick={() => edit({ mode: "receive", product: p })}>
             <Plus data-icon="inline-start" />
@@ -119,8 +84,8 @@ export function StockDetail({
             </Button>
           )}
         </div>
-      </CardHeader>
-      <CardContent>
+      </DialogHeader>
+      <div className="min-h-0 overflow-y-auto overscroll-contain p-5">
         <Tabs defaultValue="stock">
           <TabsList aria-label="品目详情">
             <TabsTrigger value="stock">位置与批次</TabsTrigger>
@@ -152,33 +117,12 @@ export function StockDetail({
                       <Badge variant="secondary">{statuses[h.status]}</Badge>
                     )}
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        aria-label={h.location + "库存操作"}
-                      >
-                        操作
-                        <ChevronDown data-icon="inline-end" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuGroup>
-                        {operations(p.category, h, scope.user.member.id).map(
-                          (mode) => (
-                            <DropdownMenuItem
-                              key={mode}
-                              onSelect={() =>
-                                edit({ mode, product: p, holding: h })
-                              }
-                            >
-                              {actions[mode]}
-                            </DropdownMenuItem>
-                          )
-                        )}
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <StockActions
+                    product={p}
+                    holdings={[h]}
+                    actorId={scope.user.member.id}
+                    edit={edit}
+                  />
                 </li>
               ))}
             </ul>
@@ -279,7 +223,7 @@ export function StockDetail({
             </ol>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </DialogContent>
   )
 }

@@ -192,6 +192,8 @@ export function StockForm({
                   product.name,
                   product.details.form,
                   product.details.specification,
+                  holding?.location,
+                  holding?.lot,
                 ]
                   .filter(Boolean)
                   .join(" · ")

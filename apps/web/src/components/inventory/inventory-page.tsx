@@ -1,30 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 import { Boxes, Plus } from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
 import { Empty, EmptyHeader, EmptyTitle } from "@workspace/ui/components/empty"
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@workspace/ui/components/native-select"
 import { Input } from "@workspace/ui/components/input"
-import { StockDetail } from "./stock-detail"
+import { StockList, type StockRow } from "./stock-list"
 import { inventory, type Category, type Product } from "@/lib/api/inventory"
 import { Feedback, errorMessage } from "../account-fields"
 import { StockForm, type Editor } from "./stock-form"
-import {
-  categories,
-  matches,
-  type Scope,
-  statuses,
-  describeExpiry,
-} from "./labels"
+import { categories, matches, type Scope } from "./labels"
 
 const filters: Record<string, string> = {
   all: "全部库存",
@@ -53,9 +40,14 @@ export function InventoryPage({
   const [filter, setFilter] = useState(
     () => sessionStorage.getItem(prefix + "filter") ?? "all"
   )
-  const [selected, setSelected] = useState(
-    () => sessionStorage.getItem(prefix + "selected") ?? ""
+  const [page, setPage] = useState(() =>
+    Math.max(1, Number(sessionStorage.getItem(prefix + "page")) || 1)
   )
+  const [pageSize, setPageSize] = useState(() => {
+    const size = Number(sessionStorage.getItem(prefix + "pageSize"))
+    return [5, 10, 20].includes(size) ? size : 10
+  })
+  const [newId, setNewId] = useState("")
   const [previousLocation, setPreviousLocation] = useState(
     () => sessionStorage.getItem(prefix + "location") ?? ""
   )
@@ -65,24 +57,16 @@ export function InventoryPage({
   const [editor, setEditor] = useState<Editor | null>(null)
   const opener = useRef<HTMLElement | null>(null)
   const registerButton = useRef<HTMLButtonElement>(null)
-  function openEditor(next: Editor) {
+  function openEditor(next: Editor, trigger?: HTMLElement | null) {
     const active = document.activeElement
-    const menuTrigger = active
-      ?.closest('[role="menu"]')
-      ?.getAttribute("aria-labelledby")
-    opener.current = menuTrigger
-      ? document.getElementById(menuTrigger)
-      : active instanceof HTMLElement
-        ? active
-        : null
+    opener.current = trigger ?? (active instanceof HTMLElement ? active : null)
     setEditor(next)
   }
   useEffect(() => {
     sessionStorage.setItem(prefix + "query", query)
     sessionStorage.setItem(prefix + "filter", filter)
-    sessionStorage.setItem(prefix + "selected", selected)
     sessionStorage.setItem(prefix + "location", previousLocation)
-  }, [prefix, query, filter, selected, previousLocation])
+  }, [prefix, query, filter, previousLocation])
   useEffect(() => {
     let active = true
     inventory
@@ -109,37 +93,58 @@ export function InventoryPage({
         ? ["priority", "today", "soon", "expired", "unknown"]
         : ["today", "soon", "verify", "expired", "unknown"]),
   ]
-  const visible = (rows ?? []).filter((p) => {
-    const stock = p.holdings.filter((h) => Number(h.remaining) > 0)
-    const text = [
-      p.name,
-      ...Object.values(p.details),
-      ...stock.flatMap((h) => [h.location, h.lot]),
-    ]
+  const keyword = query.trim().toLocaleLowerCase()
+  const list = (rows ?? []).flatMap((product): StockRow[] => {
+    const stock = product.holdings.filter((h) => Number(h.remaining) > 0)
+    const productText = [product.name, ...Object.values(product.details)]
+      .filter(Boolean)
       .join(" ")
       .toLocaleLowerCase()
-    return (
-      text.includes(query.trim().toLocaleLowerCase()) &&
-      (filter === "all" ||
-        (filter === "low"
-          ? p.minimum !== null && Number(p.available) <= Number(p.minimum)
-          : stock.some((h) => matches(h, filter))))
+    const productMatches = productText.includes(keyword)
+    const matchingStock = stock.filter(
+      (h) => filter === "all" || filter === "low" || matches(h, filter)
     )
+    const searchedStock = productMatches
+      ? matchingStock
+      : matchingStock.filter((h) =>
+          [productText, h.location, h.lot]
+            .join(" ")
+            .toLocaleLowerCase()
+            .includes(keyword)
+        )
+    if (filter === "priority")
+      return searchedStock.map((batch) => ({ product, batch }))
+    if (!productMatches && !searchedStock.length) return []
+    if (
+      filter === "low" &&
+      (product.minimum === null ||
+        Number(product.available) > Number(product.minimum))
+    )
+      return []
+    if (filter !== "all" && filter !== "low" && !matchingStock.length) return []
+    return [{ product }]
   })
-  const priorityLots =
-    filter === "priority"
-      ? visible
-          .flatMap((p) =>
-            p.holdings
-              .filter((h) => Number(h.remaining) > 0 && matches(h, filter))
-              .map((h) => ({ p, h }))
-          )
-          .sort((a, b) => a.h.expiry.localeCompare(b.h.expiry))
-      : []
-  const selectedProduct =
-    visible.find((p) => p.id === selected) ?? priorityLots[0]?.p ?? visible[0]
+  if (filter === "priority")
+    list.sort((a, b) =>
+      (a.batch?.expiry ?? "").localeCompare(b.batch?.expiry ?? "")
+    )
+  const pages = Math.max(1, Math.ceil(list.length / pageSize))
+  const newIndex = newId
+    ? list.findIndex((row) => row.product.id === newId)
+    : -1
+  const current =
+    newIndex >= 0 ? Math.floor(newIndex / pageSize) + 1 : Math.min(page, pages)
+  const start = (current - 1) * pageSize
+  function goTo(next: number) {
+    setNewId("")
+    setPage(next)
+  }
+  useEffect(() => {
+    if (rows) sessionStorage.setItem(prefix + "page", String(current))
+    sessionStorage.setItem(prefix + "pageSize", String(pageSize))
+  }, [rows, prefix, current, pageSize])
   return (
-    <div className="inventory-category grid gap-4">
+    <div className="inventory-category grid min-w-0 gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <Input
           className="w-full sm:max-w-xs"
@@ -147,12 +152,18 @@ export function InventoryPage({
           placeholder="搜索名称、位置或标签"
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            goTo(1)
+          }}
         />
         <NativeSelect
           aria-label="库存筛选"
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          onChange={(e) => {
+            setFilter(e.target.value)
+            goTo(1)
+          }}
         >
           {choices.map((k) => (
             <NativeSelectOption key={k} value={k}>
@@ -179,84 +190,58 @@ export function InventoryPage({
       )}
       {!rows && !error && <p role="status">正在读取库存…</p>}
       {rows &&
-        (selectedProduct ? (
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(15rem,.85fr)_minmax(0,1.5fr)]">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {filter === "priority"
-                    ? "优先食用批次"
-                    : categories[category] + "清单"}
-                  （
-                  {filter === "priority" ? priorityLots.length : visible.length}
-                  ）
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid max-h-[55svh] gap-2 overflow-y-auto">
-                {filter === "priority"
-                  ? priorityLots.map(({ p, h }) => (
-                      <Button
-                        key={h.id}
-                        variant={
-                          p.id === selectedProduct.id ? "secondary" : "outline"
-                        }
-                        className="h-auto min-w-0 flex-col items-start py-3"
-                        onClick={() => setSelected(p.id)}
-                      >
-                        <strong className="max-w-full truncate">
-                          {p.name} · {h.location}
-                        </strong>
-                        <span>
-                          {Number(h.remaining)} {p.unit} ·{" "}
-                          {describeExpiry(h.expiry)}
-                        </span>
-                        <Badge variant="outline">
-                          {h.opened ? "已开封" : statuses[h.status]}
-                        </Badge>
-                      </Button>
-                    ))
-                  : visible.map((p) => (
-                      <Button
-                        key={p.id}
-                        className="h-auto min-w-0 flex-col items-start py-3 text-start"
-                        variant={
-                          p.id === selectedProduct.id ? "secondary" : "outline"
-                        }
-                        aria-current={
-                          p.id === selectedProduct.id ? "true" : undefined
-                        }
-                        onClick={() => setSelected(p.id)}
-                      >
-                        <span className="max-w-full truncate font-semibold">
-                          {[p.name, p.details.form, p.details.specification]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </span>
-                        <span className="max-w-full truncate text-muted-foreground">
-                          可用 {Number(p.available)} {p.unit} ·{" "}
-                          {[
-                            ...new Set(
-                              p.holdings
-                                .filter((h) => Number(h.remaining) > 0)
-                                .map((h) => h.location)
-                            ),
-                          ].join("、") || "暂无余量"}
-                        </span>
-                        {p.minimum !== null &&
-                          Number(p.available) <= Number(p.minimum) && (
-                            <Badge variant="outline">库存不足</Badge>
-                          )}
-                      </Button>
-                    ))}
-              </CardContent>
-            </Card>
-            <StockDetail
-              key={selectedProduct.id}
-              p={selectedProduct}
+        (list.length ? (
+          <div className="min-w-0 overflow-hidden rounded-xl border bg-card">
+            <StockList
+              rows={list.slice(start, start + pageSize)}
               scope={scope}
               edit={openEditor}
               filter={filter}
             />
+            <nav
+              aria-label="库存分页"
+              className="flex flex-wrap items-center justify-between gap-3 border-t p-3"
+            >
+              <span className="text-sm text-muted-foreground" role="status">
+                第 {start + 1}–{Math.min(start + pageSize, list.length)} 条，共{" "}
+                {list.length} 条
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <NativeSelect
+                  aria-label="每页条数"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value))
+                    goTo(1)
+                  }}
+                >
+                  {[5, 10, 20].map((size) => (
+                    <NativeSelectOption key={size} value={size}>
+                      每页 {size} 条
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={current <= 1}
+                  onClick={() => goTo(current - 1)}
+                >
+                  上一页
+                </Button>
+                <span className="text-sm tabular-nums">
+                  {current} / {pages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={current >= pages}
+                  onClick={() => goTo(current + 1)}
+                >
+                  下一页
+                </Button>
+              </div>
+            </nav>
           </div>
         ) : (
           <Empty className="border">
@@ -287,8 +272,8 @@ export function InventoryPage({
             if (editor.mode === "register") {
               setQuery("")
               setFilter("all")
+              setNewId(id)
             }
-            setSelected(id)
             setReload((n) => n + 1)
           }}
         />
