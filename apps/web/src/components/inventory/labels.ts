@@ -6,6 +6,13 @@ export const categories: Record<Category, string> = {
   food: "食品",
   medicine: "药品",
 }
+export const categoryTitles = {
+  item: "物品管理",
+  food: "食物管理",
+  medicine: "药物管理",
+} satisfies Record<Category, string>
+export const categoryKeys = Object.keys(categoryTitles) as Category[]
+
 export const actions: Record<StockAction, string> = {
   receive: "入库",
   move: "移动",

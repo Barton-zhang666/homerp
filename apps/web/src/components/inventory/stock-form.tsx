@@ -6,12 +6,13 @@ import {
   NativeSelectOption,
 } from "@workspace/ui/components/native-select"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/sheet"
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import {
   inventory,
   type Product,
@@ -81,6 +82,7 @@ export function StockForm({
 }) {
   const { mode, product, holding } = editor
   const [requestId] = useState(() => crypto.randomUUID())
+  const [open, setOpen] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [packSize, setPackSize] = useState("")
@@ -148,6 +150,7 @@ export function StockForm({
       else if (product && mode === "edit")
         await inventory.edit(product.id, profile)
       else if (product) await inventory.move(product.id, receipt)
+      setOpen(false)
       saved(id!, receiving ? receipt.location : undefined)
     } catch (err) {
       setError(errorMessage(err))
@@ -156,16 +159,23 @@ export function StockForm({
     }
   }
   return (
-    <Sheet
-      open
+    <Dialog
+      open={open}
       onOpenChange={(v) => {
-        if (!v && !busy) close()
+        if (!busy) setOpen(v)
       }}
     >
-      <SheetContent className="overflow-y-auto sm:max-w-lg">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>
+      <DialogContent
+        className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+        showCloseButton={!busy}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault()
+          close()
+        }}
+      >
+        <DialogHeader className="shrink-0 border-b px-5 py-4 pr-12">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
             {product
               ? [
                   product.name,
@@ -175,10 +185,14 @@ export function StockForm({
                   .filter(Boolean)
                   .join(" · ")
               : "建立品目并登记第一批库存。"}
-          </SheetDescription>
-        </SheetHeader>
-        <form className="px-5 pb-6" onSubmit={submit}>
-          <FieldGroup>
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          id="stock-record-form"
+          className="min-h-0 overflow-y-auto overscroll-contain p-5"
+          onSubmit={submit}
+        >
+          <FieldGroup className="grid items-start gap-4 sm:grid-cols-2">
             {isProduct && (
               <>
                 <AccountField
@@ -317,8 +331,12 @@ export function StockForm({
                 >
                   {showDetails ? "收起补充资料" : "补充资料与提醒"}
                 </Button>
-                <div id="stock-details" hidden={!showDetails}>
-                  <FieldGroup>
+                <div
+                  className="sm:col-span-2"
+                  id="stock-details"
+                  hidden={!showDetails}
+                >
+                  <FieldGroup className="grid gap-4 sm:grid-cols-2">
                     {detailKeys[category]
                       .filter(
                         (key) =>
@@ -369,13 +387,27 @@ export function StockForm({
                 </div>
               </>
             )}
-            <Feedback message={error} />
-            <Button disabled={busy}>
-              {busy ? "正在保存…" : mode === "undo" ? "确认撤回" : "保存"}
-            </Button>
           </FieldGroup>
         </form>
-      </SheetContent>
-    </Sheet>
+        <DialogFooter className="m-0 shrink-0 flex-row justify-end">
+          {error && (
+            <div className="min-w-0 flex-1" role="alert">
+              <Feedback message={error} />
+            </div>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => setOpen(false)}
+          >
+            取消
+          </Button>
+          <Button form="stock-record-form" type="submit" disabled={busy}>
+            {busy ? "正在保存…" : mode === "undo" ? "确认撤回" : "保存"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

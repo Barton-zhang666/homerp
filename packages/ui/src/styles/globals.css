@@ -141,6 +141,29 @@
 }
 
 @layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .inventory-submenu[data-state="open"] {
+      animation: inventory-expand 170ms ease-out;
+    }
+    .inventory-submenu[data-state="closed"] {
+      animation: inventory-collapse 130ms ease-in;
+    }
+    .inventory-category {
+      animation: inventory-enter 160ms ease-out;
+    }
+  }
+  @keyframes inventory-expand {
+    from { height: 0; opacity: 0; }
+    to { height: var(--radix-collapsible-content-height); opacity: 1; }
+  }
+  @keyframes inventory-collapse {
+    from { height: var(--radix-collapsible-content-height); opacity: 1; }
+    to { height: 0; opacity: 0; }
+  }
+  @keyframes inventory-enter {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .member-directory {
     --primary: light-dark(#205ab4, #91b8ff);
     --accent: light-dark(#edf4ff, #20334e);

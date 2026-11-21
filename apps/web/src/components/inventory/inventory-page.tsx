@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Boxes, Plus } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -13,12 +13,6 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@workspace/ui/components/native-select"
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@workspace/ui/components/tabs"
 import { Input } from "@workspace/ui/components/input"
 import { StockDetail } from "./stock-detail"
 import { inventory, type Category, type Product } from "@/lib/api/inventory"
@@ -32,7 +26,6 @@ import {
   describeExpiry,
 } from "./labels"
 
-const categoryKeys = Object.keys(categories) as Category[]
 const filters: Record<string, string> = {
   all: "全部库存",
   low: "库存不足",
@@ -45,7 +38,7 @@ const filters: Record<string, string> = {
   unknown: "日期待补",
   verify: "本月需核对",
 }
-function CategoryWorkspace({
+export function InventoryPage({
   category,
   scope,
 }: {
@@ -70,6 +63,20 @@ function CategoryWorkspace({
   const [error, setError] = useState("")
   const [reload, setReload] = useState(0)
   const [editor, setEditor] = useState<Editor | null>(null)
+  const opener = useRef<HTMLElement | null>(null)
+  const registerButton = useRef<HTMLButtonElement>(null)
+  function openEditor(next: Editor) {
+    const active = document.activeElement
+    const menuTrigger = active
+      ?.closest('[role="menu"]')
+      ?.getAttribute("aria-labelledby")
+    opener.current = menuTrigger
+      ? document.getElementById(menuTrigger)
+      : active instanceof HTMLElement
+        ? active
+        : null
+    setEditor(next)
+  }
   useEffect(() => {
     sessionStorage.setItem(prefix + "query", query)
     sessionStorage.setItem(prefix + "filter", filter)
@@ -132,7 +139,7 @@ function CategoryWorkspace({
   const selectedProduct =
     visible.find((p) => p.id === selected) ?? priorityLots[0]?.p ?? visible[0]
   return (
-    <div className="grid gap-4">
+    <div className="inventory-category grid gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <Input
           className="w-full sm:max-w-xs"
@@ -155,7 +162,8 @@ function CategoryWorkspace({
         </NativeSelect>
         <Button
           className="sm:ml-auto"
-          onClick={() => setEditor({ mode: "register" })}
+          ref={registerButton}
+          onClick={() => openEditor({ mode: "register" })}
         >
           <Plus data-icon="inline-start" />
           登记{categories[category]}
@@ -246,7 +254,7 @@ function CategoryWorkspace({
               key={selectedProduct.id}
               p={selectedProduct}
               scope={scope}
-              edit={setEditor}
+              edit={openEditor}
               filter={filter}
             />
           </div>
@@ -267,7 +275,13 @@ function CategoryWorkspace({
           editor={editor}
           category={category}
           previousLocation={previousLocation}
-          close={() => setEditor(null)}
+          close={() => {
+            setEditor(null)
+            const target = opener.current?.isConnected
+              ? opener.current
+              : registerButton.current
+            target?.focus({ preventScroll: true })
+          }}
           saved={(id, location) => {
             if (location !== undefined) setPreviousLocation(location)
             if (editor.mode === "register") {
@@ -275,42 +289,10 @@ function CategoryWorkspace({
               setFilter("all")
             }
             setSelected(id)
-            setEditor(null)
             setReload((n) => n + 1)
           }}
         />
       )}
     </div>
-  )
-}
-export function InventoryPage(scope: Scope) {
-  const key = "homerp.inventory." + scope.user.member.id + ".category"
-  const [category, setCategory] = useState<Category>(
-    () => categoryKeys.find((c) => c === sessionStorage.getItem(key)) ?? "item"
-  )
-  return (
-    <Tabs
-      value={category}
-      onValueChange={(value) => {
-        const c = categoryKeys.find((k) => k === value)
-        if (c) {
-          setCategory(c)
-          sessionStorage.setItem(key, c)
-        }
-      }}
-    >
-      <TabsList aria-label="物资分类" variant="line">
-        {categoryKeys.map((c) => (
-          <TabsTrigger value={c} key={c}>
-            {categories[c]}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {categoryKeys.map((c) => (
-        <TabsContent key={c} value={c}>
-          <CategoryWorkspace category={c} scope={scope} />
-        </TabsContent>
-      ))}
-    </Tabs>
   )
 }

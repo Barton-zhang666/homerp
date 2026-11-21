@@ -8,6 +8,7 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Button } from "@workspace/ui/components/button"
 import { accounts, type Member, type Self } from "@/lib/api/accounts"
 import { errorMessage, Feedback } from "./account-fields"
+import { categoryKeys, categoryTitles } from "./inventory/labels"
 import { InventoryPage } from "./inventory/inventory-page"
 import { Dashboard } from "./dashboard"
 import { MemberDirectory } from "./member-directory"
@@ -23,11 +24,8 @@ function subscribeToPage(notify: () => void) {
   return () => window.removeEventListener("hashchange", notify)
 }
 
-function currentPage(): Page {
-  const hash = window.location.hash.slice(1)
-  return hash === "inventory" || hash === "members" || hash === "profile"
-    ? hash
-    : "dashboard"
+function currentHash() {
+  return window.location.hash.slice(1)
 }
 
 export function Workspace({
@@ -39,7 +37,21 @@ export function Workspace({
   saved: (member: Member) => void
   signedOut: (notice: string) => void
 }) {
-  const page = useSyncExternalStore(subscribeToPage, currentPage)
+  const hash = useSyncExternalStore(subscribeToPage, currentHash)
+  const categoryKey = "homerp.inventory." + user.member.id + ".category"
+  const category =
+    hash === "inventory"
+      ? (categoryKeys.find((c) => c === sessionStorage.getItem(categoryKey)) ??
+        "item")
+      : categoryKeys.find((c) => hash === "inventory/" + c)
+  const page: Page = category
+    ? "inventory"
+    : hash === "members" || hash === "profile"
+      ? hash
+      : "dashboard"
+  useEffect(() => {
+    if (category) sessionStorage.setItem(categoryKey, category)
+  }, [category, categoryKey])
   const [members, setMembers] = useState<Member[] | null>(null)
   const [loadError, setLoadError] = useState("")
   const [logoutError, setLogoutError] = useState("")
@@ -77,11 +89,18 @@ export function Workspace({
           !document.cookie.split("; ").includes("sidebar_state=false")
         }
       >
-        <WorkspaceNavigation user={user} page={page} logout={logout} />
+        <WorkspaceNavigation
+          user={user}
+          page={page}
+          category={category}
+          logout={logout}
+        />
         <SidebarInset className="min-w-0">
           <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 md:px-6">
             <SidebarTrigger aria-label="切换侧边栏" />
-            <h1 className="text-xl font-semibold">{pageTitles[page]}</h1>
+            <h1 className="text-xl font-semibold">
+              {category ? categoryTitles[category] : pageTitles[page]}
+            </h1>
           </header>
           <div className="w-full max-w-screen-2xl p-4 md:p-6 xl:p-8">
             <Feedback message={logoutError} />
@@ -99,8 +118,12 @@ export function Workspace({
                   )
                 }}
               />
-            ) : page === "inventory" ? (
-              <InventoryPage user={user} members={members ?? [user.member]} />
+            ) : category ? (
+              <InventoryPage
+                key={category}
+                category={category}
+                scope={{ user, members: members ?? [user.member] }}
+              />
             ) : (
               <>
                 {loadError && (

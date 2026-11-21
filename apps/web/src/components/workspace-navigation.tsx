@@ -1,5 +1,14 @@
+import { useState } from "react"
+import type { Category } from "@/lib/api/inventory"
+import { categoryKeys, categoryTitles } from "./inventory/labels"
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@workspace/ui/components/collapsible"
 import {
   ChevronsUpDown,
+  ChevronRight,
   CircleUserRound,
   House,
   LayoutDashboard,
@@ -23,6 +32,9 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
@@ -31,7 +43,7 @@ import type { Self } from "@/lib/api/accounts"
 
 export const pageTitles = {
   dashboard: "仪表盘",
-  inventory: "物资",
+  inventory: "物资管理",
   members: "用户管理",
   profile: "个人中心",
 } as const
@@ -42,12 +54,61 @@ const navigation = [
   { page: "members", icon: UsersRound },
 ] as const
 
+function InventoryMenu({ category }: { category?: Category }) {
+  const { state, isMobile, setOpen, setOpenMobile } = useSidebar()
+  const [expanded, setExpanded] = useState(Boolean(category))
+  return (
+    <Collapsible
+      open={expanded && (isMobile || state === "expanded")}
+      onOpenChange={(next) => {
+        if (!isMobile && state === "collapsed") setOpen(true)
+        setExpanded(next)
+      }}
+      asChild
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            className="group/inventory h-10"
+            tooltip="物资管理"
+            aria-label="物资管理"
+            isActive={Boolean(category)}
+          >
+            <Package />
+            <span>物资管理</span>
+            <ChevronRight className="ml-auto transition-transform duration-150 group-aria-expanded/inventory:rotate-90 motion-reduce:transition-none" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="inventory-submenu overflow-hidden">
+          <SidebarMenuSub>
+            {categoryKeys.map((c) => (
+              <SidebarMenuSubItem key={c}>
+                <SidebarMenuSubButton
+                  href={"#inventory/" + c}
+                  isActive={category === c}
+                  aria-current={category === c ? "page" : undefined}
+                  className="h-9 transition-colors motion-reduce:transition-none"
+                  onClick={() => setOpenMobile(false)}
+                >
+                  {categoryTitles[c]}
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  )
+}
+
 export function WorkspaceNavigation({
   page,
+  category,
   user,
   logout,
 }: {
   page: Page
+  category?: Category
   user: Self
   logout: () => void
 }) {
@@ -71,26 +132,33 @@ export function WorkspaceNavigation({
           <SidebarGroupLabel>工作台</SidebarGroupLabel>
           <nav aria-label="主导航">
             <SidebarMenu>
-              {navigation.map(({ page: target, icon: Icon }) => (
-                <SidebarMenuItem key={target}>
-                  <SidebarMenuButton
-                    className="h-10"
-                    asChild
-                    isActive={page === target}
-                    tooltip={pageTitles[target]}
-                  >
-                    <a
-                      href={"#" + target}
-                      aria-label={pageTitles[target]}
-                      aria-current={page === target ? "page" : undefined}
-                      onClick={closeMobile}
+              {navigation.map(({ page: target, icon: Icon }) =>
+                target === "inventory" ? (
+                  <InventoryMenu
+                    key={category ? "current-inventory" : "inventory"}
+                    category={category}
+                  />
+                ) : (
+                  <SidebarMenuItem key={target}>
+                    <SidebarMenuButton
+                      className="h-10"
+                      asChild
+                      isActive={page === target}
+                      tooltip={pageTitles[target]}
                     >
-                      <Icon />
-                      <span>{pageTitles[target]}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <a
+                        href={"#" + target}
+                        aria-label={pageTitles[target]}
+                        aria-current={page === target ? "page" : undefined}
+                        onClick={closeMobile}
+                      >
+                        <Icon />
+                        <span>{pageTitles[target]}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              )}
             </SidebarMenu>
           </nav>
         </SidebarGroup>
