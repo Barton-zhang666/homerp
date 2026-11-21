@@ -15,7 +15,13 @@ export function FormFieldLabel({
   return (
     <FieldLabel htmlFor={htmlFor}>
       {label}
-      <span className="shrink-0 text-xs font-normal text-muted-foreground">
+      <span
+        className={
+          required
+            ? "shrink-0 text-xs font-bold text-field-accent"
+            : "shrink-0 text-xs font-normal text-muted-foreground"
+        }
+      >
         {required ? "必填" : "选填"}
       </span>
     </FieldLabel>
