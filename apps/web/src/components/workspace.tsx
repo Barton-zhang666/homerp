@@ -8,7 +8,7 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Button } from "@workspace/ui/components/button"
 import { accounts, type Member, type Self } from "@/lib/api/accounts"
 import { errorMessage, Feedback } from "./account-fields"
-import { categoryKeys, categoryTitles } from "./inventory/labels"
+import { categoryKeys } from "./inventory/labels"
 import { InventoryPage } from "./inventory/inventory-page"
 import { Dashboard } from "./dashboard"
 import { MemberDirectory } from "./member-directory"
@@ -85,6 +85,7 @@ export function Workspace({
   return (
     <TooltipProvider>
       <SidebarProvider
+        data-inventory-workspace={category ? "" : undefined}
         defaultOpen={
           !document.cookie.split("; ").includes("sidebar_state=false")
         }
@@ -98,17 +99,23 @@ export function Workspace({
         <SidebarInset className="min-w-0">
           <header className="flex h-16 shrink-0 items-center gap-3 border-b bg-card px-4 md:px-6">
             <SidebarTrigger aria-label="切换侧边栏" />
-            {category && (
-              <span className="hidden border-l pl-4 text-sm text-muted-foreground sm:inline">
-                物资管理{" "}
-                <span aria-hidden="true" className="ml-2">
-                  /
+            {category ? (
+              <>
+                <span className="font-semibold tracking-tight">
+                  家庭 ERP 系统
                 </span>
-              </span>
+                <span className="border-l pl-3 text-sm text-muted-foreground">
+                  物资管理
+                </span>
+                <Button asChild variant="ghost" className="ml-auto">
+                  <a href="#profile">{user.member.name}</a>
+                </Button>
+              </>
+            ) : (
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {pageTitles[page]}
+              </h1>
             )}
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {category ? categoryTitles[category] : pageTitles[page]}
-            </h1>
           </header>
           <div className="w-full max-w-screen-2xl p-4 md:p-6 xl:p-8">
             <Feedback message={logoutError} />

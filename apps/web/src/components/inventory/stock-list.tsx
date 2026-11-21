@@ -1,4 +1,5 @@
-import { Eye } from "lucide-react"
+import { useState } from "react"
+import { Eye, ChevronRight } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -15,18 +16,28 @@ import {
   TableHead,
   TableCell,
 } from "@workspace/ui/components/table"
-import type { Product, Holding } from "@/lib/api/inventory"
+import type { Product, Holding, Category } from "@/lib/api/inventory"
 import type { Editor } from "./stock-form"
 import { StockDetail } from "./stock-detail"
 import { StockActions } from "./stock-actions"
-import { describeExpiry, type Scope } from "./labels"
+import {
+  categories,
+  activeHoldings,
+  earliestExpiry,
+  describeExpiry,
+  type Scope,
+} from "./labels"
 
-export type StockRow = { product: Product; batch?: Holding }
+export type StockRow = {
+  product: Product
+  batch?: Holding
+  visibleHoldings?: Holding[]
+}
 
 function stockStatus(product: Product, holdings: Holding[]) {
   const labels = []
   const has = (status: string) => holdings.some((h) => h.status === status)
-  if (has("expired")) labels.push("待清理")
+  if (has("expired")) labels.push("已过期")
   if (has("today")) labels.push("今日到期")
   if (
     product.minimum !== null &&
@@ -49,12 +60,25 @@ export function StockList({
   scope,
   edit,
   filter,
+  category,
 }: {
   rows: StockRow[]
   scope: Scope
   edit: (editor: Editor, trigger?: HTMLElement | null) => void
   filter: string
+  category: Category
 }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const displayRows = rows.flatMap((row) =>
+    category === "food" && !row.batch && expanded === row.product.id
+      ? [
+          row,
+          ...(row.visibleHoldings ?? activeHoldings(row.product)).map(
+            (batch) => ({ product: row.product, batch })
+          ),
+        ]
+      : [row]
+  )
   return (
     <Table
       className="inventory-table table-fixed"
@@ -62,21 +86,36 @@ export function StockList({
     >
       <TableHeader className="bg-muted/70">
         <TableRow>
-          <TableHead className="pl-3 sm:pl-5">名称</TableHead>
+          <TableHead className="pl-3 sm:pl-5">
+            {categories[category]}名称
+          </TableHead>
+          {category === "medicine" && (
+            <TableHead className="hidden w-[12%] lg:table-cell">规格</TableHead>
+          )}
           <TableHead className="hidden w-[18%] md:table-cell">位置</TableHead>
           <TableHead className="w-12 text-right sm:w-24">
-            {filter === "priority" ? "批次" : "可用"}
+            {filter === "priority" ? "批次" : "库存"}
             <span className="hidden sm:inline">数量</span>
           </TableHead>
-          <TableHead className="w-24 pl-2 sm:w-36 sm:pl-6">状态</TableHead>
-          <TableHead className="w-[4.5rem] text-center sm:w-40">操作</TableHead>
+          {category !== "item" && (
+            <TableHead className="hidden w-[13%] lg:table-cell">
+              {category === "food" ? "最近到期日" : "有效期"}
+            </TableHead>
+          )}
+          <TableHead className="w-24 pl-2 sm:w-28 sm:pl-6">状态</TableHead>
+          <TableHead className="w-[4.5rem] text-center sm:w-36 2xl:w-48">
+            操作
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rows.map(({ product, batch }) => {
+        {displayRows.map(({ product, batch, visibleHoldings }: StockRow) => {
           const holdings = batch
             ? [batch]
-            : product.holdings.filter((h) => Number(h.remaining) > 0)
+            : (visibleHoldings ?? activeHoldings(product))
+          const quantity = Number(
+            holdings.reduce((sum, h) => sum + Number(h.remaining), 0).toFixed(3)
+          )
           const locations =
             [...new Set(holdings.map((h) => h.location))].join("、") ||
             "暂无余量"
@@ -88,12 +127,23 @@ export function StockList({
           ]
             .filter(Boolean)
             .join(" · ")
+          const isChild = Boolean(batch) && filter !== "priority"
+          const name = isChild
+            ? "批次 · " + (batch?.lot || "未录批号")
+            : product.name
+          const expiry =
+            earliestExpiry(holdings) ??
+            (holdings.some((h) => h.expiry === "fresh") ? "无包装日期" : "—")
           const { labels, attention } = stockStatus(product, holdings)
           const badge = (
             <Badge
               variant="secondary"
               className={
-                attention ? "stock-status stock-status-alert" : "stock-status"
+                labels[0] === "已过期"
+                  ? "stock-status stock-expired"
+                  : attention
+                    ? "stock-status stock-status-alert"
+                    : "stock-status"
               }
             >
               {labels[0]}
@@ -101,15 +151,34 @@ export function StockList({
           )
           return (
             <TableRow
-              key={batch?.id ?? product.id}
-              className="h-16 focus-within:bg-accent/50"
+              key={batch ? "batch-" + batch.id : product.id}
+              data-batch={isChild || undefined}
+              className="h-16 focus-within:bg-accent/50 md:h-12"
             >
               <TableCell className="py-0 pl-3 sm:pl-5">
-                <div
-                  className="line-clamp-2 leading-tight font-semibold wrap-anywhere whitespace-normal md:block md:truncate"
-                  title={product.name}
-                >
-                  {product.name}
+                <div className="flex min-w-0 items-center gap-1">
+                  {category === "food" && !batch && holdings.length > 0 && (
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      className="size-5 shrink-0"
+                      aria-expanded={expanded === product.id}
+                      aria-label={product.name + "的批次"}
+                      onClick={() =>
+                        setExpanded(expanded === product.id ? null : product.id)
+                      }
+                    >
+                      <ChevronRight
+                        className={expanded === product.id ? "rotate-90" : ""}
+                      />
+                    </Button>
+                  )}
+                  <div
+                    className="line-clamp-2 leading-tight font-semibold wrap-anywhere whitespace-normal md:block md:truncate"
+                    title={name}
+                  >
+                    {name}
+                  </div>
                 </div>
                 <div
                   className="truncate text-xs text-muted-foreground md:hidden"
@@ -119,13 +188,25 @@ export function StockList({
                 </div>
                 {metadata && (
                   <div
-                    className="hidden truncate text-xs text-muted-foreground md:block"
+                    className={
+                      category === "medicine"
+                        ? "hidden truncate text-xs text-muted-foreground md:block lg:hidden"
+                        : "hidden truncate text-xs text-muted-foreground md:block"
+                    }
                     title={metadata}
                   >
                     {metadata}
                   </div>
                 )}
               </TableCell>
+              {category === "medicine" && (
+                <TableCell
+                  className="hidden truncate py-0 lg:table-cell"
+                  title={metadata}
+                >
+                  {metadata || "—"}
+                </TableCell>
+              )}
               <TableCell
                 className="hidden truncate py-0 text-muted-foreground md:table-cell"
                 title={locations}
@@ -133,20 +214,22 @@ export function StockList({
                 {locations}
               </TableCell>
               <TableCell
-                className="truncate py-0 text-right tabular-nums"
-                title={
-                  Number(batch?.remaining ?? product.available) +
-                  " " +
-                  product.unit
-                }
+                className="truncate px-0.5 py-0 text-right tabular-nums sm:px-2"
+                title={quantity + " " + product.unit}
               >
-                <span className="font-semibold">
-                  {Number(batch?.remaining ?? product.available)}
-                </span>
+                <span className="font-semibold">{quantity}</span>
                 <span className="ml-0.5 text-xs text-muted-foreground">
                   {product.unit}
                 </span>
               </TableCell>
+              {category !== "item" && (
+                <TableCell
+                  className="hidden truncate py-0 tabular-nums lg:table-cell"
+                  title={expiry}
+                >
+                  {expiry}
+                </TableCell>
+              )}
               <TableCell className="py-0 pl-2 sm:pl-6">
                 {labels.length === 1 ? (
                   badge
@@ -195,6 +278,19 @@ export function StockList({
                       filter={filter}
                     />
                   </Dialog>
+                  {!batch && (
+                    <Button
+                      size="sm"
+                      variant="link"
+                      className="hidden px-1 2xl:inline-flex"
+                      aria-label={product.name + "入库"}
+                      onClick={(e) =>
+                        edit({ mode: "receive", product }, e.currentTarget)
+                      }
+                    >
+                      入库
+                    </Button>
+                  )}
                   <StockActions
                     product={product}
                     holdings={holdings}

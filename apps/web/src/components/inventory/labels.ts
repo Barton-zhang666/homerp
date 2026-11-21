@@ -8,8 +8,8 @@ export const categories: Record<Category, string> = {
 }
 export const categoryTitles = {
   item: "物品管理",
-  food: "食物管理",
-  medicine: "药物管理",
+  food: "食品管理",
+  medicine: "药品管理",
 } satisfies Record<Category, string>
 export const categoryKeys = Object.keys(categoryTitles) as Category[]
 
@@ -64,4 +64,17 @@ export function matches(h: Holding, filter: string) {
       (h.opened || ["soon", "today"].includes(h.status))
     )
   return h.status === filter || h.custody === filter
+}
+
+export function isLowStock(p: Product) {
+  return p.minimum !== null && Number(p.available) <= Number(p.minimum)
+}
+export function activeHoldings(p: Product) {
+  return p.holdings.filter((h) => Number(h.remaining) > 0)
+}
+export function earliestExpiry(holdings: Holding[]) {
+  return holdings
+    .map((h) => h.expiry)
+    .filter((value) => /^\d{4}-/.test(value))
+    .sort()[0]
 }
