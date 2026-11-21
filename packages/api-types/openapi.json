@@ -478,10 +478,344 @@
           }
         }
       }
+    },
+    "/inventory": {
+      "get": {
+        "tags": [
+          "物资"
+        ],
+        "summary": "List Inventory",
+        "operationId": "list_inventory_inventory_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Category"
+            }
+          },
+          {
+            "name": "x-homerp-request",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Homerp-Request"
+            }
+          },
+          {
+            "name": "homerp_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Homerp Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryView"
+                  },
+                  "title": "Response List Inventory Inventory Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "物资"
+        ],
+        "summary": "Register Stock",
+        "operationId": "register_stock_inventory_post",
+        "parameters": [
+          {
+            "name": "x-homerp-request",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Homerp-Request"
+            }
+          },
+          {
+            "name": "homerp_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Homerp Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "title": "Response Register Stock Inventory Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/{product_id}": {
+      "put": {
+        "tags": [
+          "物资"
+        ],
+        "summary": "Update Product",
+        "operationId": "update_product_inventory__product_id__put",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "x-homerp-request",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Homerp-Request"
+            }
+          },
+          {
+            "name": "homerp_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Homerp Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/{product_id}/movements": {
+      "post": {
+        "tags": [
+          "物资"
+        ],
+        "summary": "Add Movement",
+        "operationId": "add_movement_inventory__product_id__movements_post",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "x-homerp-request",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Homerp-Request"
+            }
+          },
+          {
+            "name": "homerp_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Homerp Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Action": {
+        "type": "string",
+        "enum": [
+          "receive",
+          "move",
+          "lend",
+          "return",
+          "repair",
+          "retrieve",
+          "use",
+          "discard",
+          "count",
+          "open",
+          "verify_date",
+          "undo"
+        ],
+        "title": "Action"
+      },
+      "Category": {
+        "type": "string",
+        "enum": [
+          "item",
+          "food",
+          "medicine"
+        ],
+        "title": "Category"
+      },
       "Credentials": {
         "properties": {
           "email": {
@@ -533,6 +867,138 @@
           "status"
         ],
         "title": "HealthResponse"
+      },
+      "HoldingView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "custody": {
+            "type": "string",
+            "title": "Custody"
+          },
+          "remaining": {
+            "type": "string",
+            "title": "Remaining"
+          },
+          "expiry": {
+            "type": "string",
+            "title": "Expiry"
+          },
+          "lot": {
+            "type": "string",
+            "title": "Lot"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "opened": {
+            "type": "boolean",
+            "title": "Opened"
+          },
+          "received_by": {
+            "type": "string",
+            "title": "Received By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "location",
+          "custody",
+          "remaining",
+          "expiry",
+          "lot",
+          "status",
+          "opened",
+          "received_by"
+        ],
+        "title": "HoldingView"
+      },
+      "InventoryView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "owner_id": {
+            "type": "string",
+            "title": "Owner Id"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ProductDetails"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "warning_days": {
+            "type": "integer",
+            "title": "Warning Days"
+          },
+          "owned": {
+            "type": "string",
+            "title": "Owned"
+          },
+          "available": {
+            "type": "string",
+            "title": "Available"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/HoldingView"
+            },
+            "type": "array",
+            "title": "Holdings"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/MovementView"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "owner_id",
+          "category",
+          "name",
+          "unit",
+          "details",
+          "minimum",
+          "warning_days",
+          "owned",
+          "available",
+          "holdings",
+          "history"
+        ],
+        "title": "InventoryView"
       },
       "MemberView": {
         "properties": {
@@ -610,6 +1076,88 @@
         ],
         "title": "MemberView"
       },
+      "MovementView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "source_delta": {
+            "type": "string",
+            "title": "Source Delta"
+          },
+          "destination_quantity": {
+            "type": "string",
+            "title": "Destination Quantity"
+          },
+          "expiry": {
+            "type": "string",
+            "title": "Expiry"
+          },
+          "lot": {
+            "type": "string",
+            "title": "Lot"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "reverses": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reverses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "actor_id",
+          "action",
+          "occurred_at",
+          "source_id",
+          "source_delta",
+          "destination_quantity",
+          "expiry",
+          "lot",
+          "location",
+          "note",
+          "reverses"
+        ],
+        "title": "MovementView"
+      },
       "PasswordChange": {
         "properties": {
           "password": {
@@ -636,6 +1184,102 @@
           "new_password"
         ],
         "title": "PasswordChange"
+      },
+      "ProductDetails": {
+        "properties": {
+          "brand": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Brand",
+            "default": ""
+          },
+          "alias": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Alias",
+            "default": ""
+          },
+          "specification": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Specification",
+            "default": ""
+          },
+          "form": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Form",
+            "default": ""
+          },
+          "tags": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Tags",
+            "default": ""
+          },
+          "ingredients": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Ingredients",
+            "default": ""
+          },
+          "allergens": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Allergens",
+            "default": ""
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Instructions",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProductDetails"
+      },
+      "ProductEdit": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ProductDetails"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "warning_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Warning Days",
+            "default": 7
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ProductEdit"
       },
       "ProfileInput": {
         "properties": {
@@ -747,6 +1391,62 @@
         ],
         "title": "Registration"
       },
+      "RegistrationInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ProductDetails"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "warning_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Warning Days",
+            "default": 7
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Unit",
+            "default": "件"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/StockInput"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "category",
+          "receipt"
+        ],
+        "title": "RegistrationInput"
+      },
       "SelfView": {
         "properties": {
           "email": {
@@ -763,6 +1463,104 @@
           "member"
         ],
         "title": "SelfView"
+      },
+      "StockInput": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Request Id"
+          },
+          "action": {
+            "$ref": "#/components/schemas/Action"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Quantity",
+            "default": "1"
+          },
+          "units_per_pack": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Units Per Pack"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Location",
+            "default": ""
+          },
+          "expiry": {
+            "type": "string",
+            "maxLength": 10,
+            "title": "Expiry",
+            "default": ""
+          },
+          "lot": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Lot",
+            "default": ""
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 512,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_id",
+          "action"
+        ],
+        "title": "StockInput"
       },
       "ValidationError": {
         "properties": {

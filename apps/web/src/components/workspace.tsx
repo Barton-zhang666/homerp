@@ -8,6 +8,7 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Button } from "@workspace/ui/components/button"
 import { accounts, type Member, type Self } from "@/lib/api/accounts"
 import { errorMessage, Feedback } from "./account-fields"
+import { InventoryPage } from "./inventory/inventory-page"
 import { Dashboard } from "./dashboard"
 import { MemberDirectory } from "./member-directory"
 import { PersonalCenter } from "./member-profile"
@@ -24,7 +25,9 @@ function subscribeToPage(notify: () => void) {
 
 function currentPage(): Page {
   const hash = window.location.hash.slice(1)
-  return hash === "members" || hash === "profile" ? hash : "dashboard"
+  return hash === "inventory" || hash === "members" || hash === "profile"
+    ? hash
+    : "dashboard"
 }
 
 export function Workspace({
@@ -96,6 +99,8 @@ export function Workspace({
                   )
                 }}
               />
+            ) : page === "inventory" ? (
+              <InventoryPage user={user} members={members ?? [user.member]} />
             ) : (
               <>
                 {loadError && (

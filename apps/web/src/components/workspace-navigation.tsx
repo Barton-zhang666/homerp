@@ -4,6 +4,7 @@ import {
   House,
   LayoutDashboard,
   LogOut,
+  Package,
   UsersRound,
 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
@@ -30,12 +31,14 @@ import type { Self } from "@/lib/api/accounts"
 
 export const pageTitles = {
   dashboard: "仪表盘",
+  inventory: "物资",
   members: "用户管理",
   profile: "个人中心",
 } as const
 export type Page = keyof typeof pageTitles
 const navigation = [
   { page: "dashboard", icon: LayoutDashboard },
+  { page: "inventory", icon: Package },
   { page: "members", icon: UsersRound },
 ] as const
 

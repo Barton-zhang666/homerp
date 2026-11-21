@@ -140,10 +140,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Inventory */
+        get: operations["list_inventory_inventory_get"];
+        put?: never;
+        /** Register Stock */
+        post: operations["register_stock_inventory_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/inventory/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Product */
+        put: operations["update_product_inventory__product_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/inventory/{product_id}/movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Movement */
+        post: operations["add_movement_inventory__product_id__movements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * Action
+         * @enum {string}
+         */
+        Action: "receive" | "move" | "lend" | "return" | "repair" | "retrieve" | "use" | "discard" | "count" | "open" | "verify_date" | "undo";
+        /**
+         * Category
+         * @enum {string}
+         */
+        Category: "item" | "food" | "medicine";
         /** Credentials */
         Credentials: {
             /**
@@ -169,6 +231,52 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** HoldingView */
+        HoldingView: {
+            /** Id */
+            id: string;
+            /** Location */
+            location: string;
+            /** Custody */
+            custody: string;
+            /** Remaining */
+            remaining: string;
+            /** Expiry */
+            expiry: string;
+            /** Lot */
+            lot: string;
+            /** Status */
+            status: string;
+            /** Opened */
+            opened: boolean;
+            /** Received By */
+            received_by: string;
+        };
+        /** InventoryView */
+        InventoryView: {
+            /** Id */
+            id: string;
+            /** Owner Id */
+            owner_id: string;
+            category: components["schemas"]["Category"];
+            /** Name */
+            name: string;
+            /** Unit */
+            unit: string;
+            details: components["schemas"]["ProductDetails"];
+            /** Minimum */
+            minimum: string | null;
+            /** Warning Days */
+            warning_days: number;
+            /** Owned */
+            owned: string;
+            /** Available */
+            available: string;
+            /** Holdings */
+            holdings: components["schemas"]["HoldingView"][];
+            /** History */
+            history: components["schemas"]["MovementView"][];
         };
         /** MemberView */
         MemberView: {
@@ -198,6 +306,35 @@ export interface components {
             /** Id */
             id: string;
         };
+        /** MovementView */
+        MovementView: {
+            /** Id */
+            id: string;
+            /** Actor Id */
+            actor_id: string;
+            action: components["schemas"]["Action"];
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Source Id */
+            source_id: string | null;
+            /** Source Delta */
+            source_delta: string;
+            /** Destination Quantity */
+            destination_quantity: string;
+            /** Expiry */
+            expiry: string;
+            /** Lot */
+            lot: string;
+            /** Location */
+            location: string;
+            /** Note */
+            note: string;
+            /** Reverses */
+            reverses: string | null;
+        };
         /** PasswordChange */
         PasswordChange: {
             /**
@@ -210,6 +347,62 @@ export interface components {
              * Format: password
              */
             new_password: string;
+        };
+        /** ProductDetails */
+        ProductDetails: {
+            /**
+             * Brand
+             * @default
+             */
+            brand: string;
+            /**
+             * Alias
+             * @default
+             */
+            alias: string;
+            /**
+             * Specification
+             * @default
+             */
+            specification: string;
+            /**
+             * Form
+             * @default
+             */
+            form: string;
+            /**
+             * Tags
+             * @default
+             */
+            tags: string;
+            /**
+             * Ingredients
+             * @default
+             */
+            ingredients: string;
+            /**
+             * Allergens
+             * @default
+             */
+            allergens: string;
+            /**
+             * Instructions
+             * @default
+             */
+            instructions: string;
+        };
+        /** ProductEdit */
+        ProductEdit: {
+            /** Name */
+            name: string;
+            details?: components["schemas"]["ProductDetails"];
+            /** Minimum */
+            minimum?: number | string | null;
+            /**
+             * Warning Days
+             * @default 7
+             */
+            warning_days: number;
         };
         /** ProfileInput */
         ProfileInput: {
@@ -257,11 +450,71 @@ export interface components {
              */
             password_confirmation: string;
         };
+        /** RegistrationInput */
+        RegistrationInput: {
+            /** Name */
+            name: string;
+            details?: components["schemas"]["ProductDetails"];
+            /** Minimum */
+            minimum?: number | string | null;
+            /**
+             * Warning Days
+             * @default 7
+             */
+            warning_days: number;
+            category: components["schemas"]["Category"];
+            /**
+             * Unit
+             * @default 件
+             */
+            unit: string;
+            receipt: components["schemas"]["StockInput"];
+        };
         /** SelfView */
         SelfView: {
             /** Email */
             email: string;
             member: components["schemas"]["MemberView"];
+        };
+        /** StockInput */
+        StockInput: {
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            action: components["schemas"]["Action"];
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number | string;
+            /** Units Per Pack */
+            units_per_pack?: number | string | null;
+            /** Source Id */
+            source_id?: string | null;
+            /** Expected */
+            expected?: number | string | null;
+            /**
+             * Location
+             * @default
+             */
+            location: string;
+            /**
+             * Expiry
+             * @default
+             */
+            expiry: string;
+            /**
+             * Lot
+             * @default
+             */
+            lot: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -523,6 +776,152 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_inventory_inventory_get: {
+        parameters: {
+            query: {
+                category: components["schemas"]["Category"];
+            };
+            header?: {
+                "x-homerp-request"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                homerp_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryView"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_stock_inventory_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-homerp-request"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                homerp_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_product_inventory__product_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-homerp-request"?: string | null;
+            };
+            path: {
+                product_id: string;
+            };
+            cookie?: {
+                homerp_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_movement_inventory__product_id__movements_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-homerp-request"?: string | null;
+            };
+            path: {
+                product_id: string;
+            };
+            cookie?: {
+                homerp_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockInput"];
             };
         };
         responses: {

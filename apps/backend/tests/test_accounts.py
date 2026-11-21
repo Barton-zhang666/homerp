@@ -1,54 +1,12 @@
-from collections.abc import AsyncIterator
 from datetime import datetime, timedelta
 
-import httpx
 import pytest
+from account_helpers import client, credentials, register, registration
 from sqlalchemy import update
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.application.use_cases.accounts import digest
-from src.infrastructure.persistence.models import Base, MemberRow, SessionRow
-from src.interfaces import dependencies
-from src.main import app
-
-
-@pytest.fixture
-async def database(
-    monkeypatch: pytest.MonkeyPatch,
-) -> AsyncIterator[async_sessionmaker[AsyncSession]]:
-    engine = create_async_engine("sqlite+aiosqlite://")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    sessions = async_sessionmaker(engine, expire_on_commit=False)
-    monkeypatch.setattr(dependencies, "get_session_factory", lambda: sessions)
-    try:
-        yield sessions
-    finally:
-        await engine.dispose()
-
-
-def client() -> httpx.AsyncClient:
-    return httpx.AsyncClient(
-        base_url="http://test",
-        transport=httpx.ASGITransport(app=app),
-        headers={"X-Homerp-Request": "1"},
-    )
-
-
-def credentials(name: str) -> dict[str, str]:
-    return {"email": f"{name}@example.com", "password": "test-password-123"}
-
-
-def registration(name: str) -> dict[str, str]:
-    auth = credentials(name)
-    return {"name": name, **auth, "password_confirmation": auth["password"]}
-
-
-async def register(c: httpx.AsyncClient, name: str) -> str:
-    response = await c.post("/auth/register", json=registration(name))
-    assert response.status_code == 201, response.text
-    assert "HttpOnly" in response.headers["set-cookie"]
-    return str(response.json()["member"]["id"])
+from src.infrastructure.persistence.models import MemberRow, SessionRow
 
 
 async def test_self_registration_and_shared_directory(
