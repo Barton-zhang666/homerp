@@ -96,9 +96,17 @@ export function Workspace({
           logout={logout}
         />
         <SidebarInset className="min-w-0">
-          <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 md:px-6">
+          <header className="flex h-16 shrink-0 items-center gap-3 border-b bg-card px-4 md:px-6">
             <SidebarTrigger aria-label="切换侧边栏" />
-            <h1 className="text-xl font-semibold">
+            {category && (
+              <span className="hidden border-l pl-4 text-sm text-muted-foreground sm:inline">
+                物资管理{" "}
+                <span aria-hidden="true" className="ml-2">
+                  /
+                </span>
+              </span>
+            )}
+            <h1 className="text-2xl font-semibold tracking-tight">
               {category ? categoryTitles[category] : pageTitles[page]}
             </h1>
           </header>

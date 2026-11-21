@@ -1,5 +1,5 @@
 import { useRef } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Ellipsis } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -68,12 +68,24 @@ export function StockActions({
       <DropdownMenuTrigger asChild>
         <Button
           ref={trigger}
+          title="操作"
+          className={
+            includeProduct ? "size-8 p-0 sm:w-auto sm:px-2" : undefined
+          }
           size="sm"
           variant="outline"
           aria-label={product.name + "操作"}
         >
-          操作
-          <ChevronDown data-icon="inline-end" />
+          {includeProduct && (
+            <Ellipsis aria-hidden="true" className="sm:hidden" />
+          )}
+          <span className={includeProduct ? "hidden sm:inline" : undefined}>
+            操作
+          </span>
+          <ChevronDown
+            data-icon="inline-end"
+            className={includeProduct ? "hidden sm:block" : undefined}
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

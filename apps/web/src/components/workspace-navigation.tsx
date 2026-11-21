@@ -116,13 +116,13 @@ export function WorkspaceNavigation({
   const closeMobile = () => setOpenMobile(false)
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="border-b border-sidebar-border py-3">
         <div className="flex h-12 items-center gap-3 px-2 group-data-[collapsible=icon]:px-0">
           <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <House className="size-5" />
           </div>
           <div className="grid leading-tight group-data-[collapsible=icon]:hidden">
-            <strong>homerp</strong>
+            <strong className="text-xl tracking-tight">homerp</strong>
             <span className="text-xs text-muted-foreground">家庭管理空间</span>
           </div>
         </div>
@@ -163,7 +163,7 @@ export function WorkspaceNavigation({
           </nav>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
