@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { Button } from "@workspace/ui/components/button"
-import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import { Field, FieldGroup } from "@workspace/ui/components/field"
 import {
   NativeSelect,
   NativeSelectOption,
@@ -21,7 +21,12 @@ import {
   type Holding,
   type StockAction,
 } from "@/lib/api/inventory"
-import { AccountField, Feedback, errorMessage } from "../account-fields"
+import {
+  AccountField,
+  Feedback,
+  FormFieldLabel,
+  errorMessage,
+} from "../account-fields"
 import { actions, categories, detailKeys, detailLabels } from "./labels"
 
 type Mode = "register" | "edit" | StockAction
@@ -31,21 +36,26 @@ export type Editor = {
   holding?: Holding
   movementId?: string
 }
-function ExpiryField({ category }: { category: Category }) {
+function ExpiryField({
+  category,
+  verifying,
+}: {
+  category: Category
+  verifying: boolean
+}) {
   const [precision, setPrecision] = useState("day")
   return (
     <>
       <Field>
-        <FieldLabel htmlFor="precision">包装日期</FieldLabel>
+        <FormFieldLabel htmlFor="precision" label="包装日期格式" />
         <NativeSelect
+          className="w-full [&>select]:h-10 [&>select]:text-base"
           id="precision"
           name="precision"
           value={precision}
           onChange={(e) => setPrecision(e.target.value)}
         >
-          <NativeSelectOption value="day">
-            按日填写（可留空）
-          </NativeSelectOption>
+          <NativeSelectOption value="day">按日填写</NativeSelectOption>
           {category === "medicine" ? (
             <NativeSelectOption value="month">包装只印年月</NativeSelectOption>
           ) : (
@@ -60,6 +70,7 @@ function ExpiryField({ category }: { category: Category }) {
           key={precision}
           name="expiry"
           label="包装标示到期日"
+          required={verifying}
           type={precision === "month" ? "month" : "date"}
         />
       )}
@@ -192,7 +203,7 @@ export function StockForm({
           className="min-h-0 overflow-y-auto overscroll-contain p-5"
           onSubmit={submit}
         >
-          <FieldGroup className="grid items-start gap-4 sm:grid-cols-2">
+          <FieldGroup className="grid items-end gap-4 sm:grid-cols-2">
             {isProduct && (
               <>
                 <AccountField
@@ -245,7 +256,7 @@ export function StockForm({
               />
             )}
             {mode === "count" && (
-              <p>
+              <p className="sm:col-span-2">
                 账面 {Number(holding?.remaining)}，差额{" "}
                 {Number(
                   (Number(quantity) - Number(holding?.remaining)).toFixed(3)
@@ -265,7 +276,7 @@ export function StockForm({
                   onChange={(e) => setPackSize(e.target.value)}
                 />
                 {packSize && (
-                  <p>
+                  <p className="sm:col-span-2">
                     折合入库{" "}
                     {Number((Number(packSize) * Number(quantity)).toFixed(3))}{" "}
                     {product?.unit || "个库存单位"}
@@ -300,7 +311,10 @@ export function StockForm({
               />
             )}
             {(receiving || mode === "verify_date") && category !== "item" && (
-              <ExpiryField category={category} />
+              <ExpiryField
+                category={category}
+                verifying={mode === "verify_date"}
+              />
             )}
             {mode === "open" && (
               <AccountField
@@ -311,7 +325,9 @@ export function StockForm({
               />
             )}
             {mode === "undo" && (
-              <p>确认撤回这笔流水？系统会核对后续用量并追加一条反向记录。</p>
+              <p className="sm:col-span-2">
+                确认撤回这笔流水？系统会核对后续用量并追加一条反向记录。
+              </p>
             )}
             {mode !== "edit" && (
               <AccountField
@@ -323,6 +339,7 @@ export function StockForm({
             {isProduct && (
               <>
                 <Button
+                  className="sm:col-span-2"
                   variant="outline"
                   type="button"
                   aria-expanded={showDetails}
@@ -336,7 +353,7 @@ export function StockForm({
                   id="stock-details"
                   hidden={!showDetails}
                 >
-                  <FieldGroup className="grid gap-4 sm:grid-cols-2">
+                  <FieldGroup className="grid items-end gap-4 sm:grid-cols-2">
                     {detailKeys[category]
                       .filter(
                         (key) =>
@@ -349,10 +366,6 @@ export function StockForm({
                           name={key}
                           label={detailLabels[key]}
                           defaultValue={product?.details[key]}
-                          required={
-                            category === "medicine" &&
-                            ["form", "specification"].includes(key)
-                          }
                           maxLength={
                             [
                               "instructions",
@@ -379,7 +392,7 @@ export function StockForm({
                         type="number"
                         min="0"
                         max="365"
-                        required
+                        placeholder="默认 7 天"
                         defaultValue={product?.warning_days ?? 7}
                       />
                     )}

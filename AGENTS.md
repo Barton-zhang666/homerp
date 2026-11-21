@@ -34,6 +34,7 @@
 
 ## 前端约定
 
+- 新增或修改前端界面前，读取[前端交互与表单 Skill](.codex/skills/frontend-guidelines/SKILL.md)，按本次涉及的导航、弹窗或表单要求实现并验收。
 - 新增或修改前端代码前，必须先读取[项目级 shadcn Skill](.codex/skills/shadcn/SKILL.md)，根据本次需求查找 `packages/ui/` 中可复用的组件，并按 Skill 查阅对应组件的文档和用法。缺少所需组件时，先用 shadcn CLI 搜索注册表，再添加匹配的组件。
 - 前端基础 UI 必须使用 shadcn/ui。业务组件通过组合库组件实现，禁止手写按钮、输入框、弹窗等基础控件，也禁止引入其他 UI 组件库替代。
 - API 调用统一放在 src/lib/api/，类型从 packages/api-types/ 导入（由后端 OpenAPI 生成）。

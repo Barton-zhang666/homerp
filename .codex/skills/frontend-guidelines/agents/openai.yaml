@@ -1,0 +1,3 @@
+interface:
+  display_name: "前端交互与表单"
+  short_description: "实现并检查 homerp 的侧栏导航、记录弹窗、字段对齐与必填提示"
